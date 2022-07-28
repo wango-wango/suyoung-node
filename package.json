@@ -1,7 +1,6 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js",
@@ -21,5 +20,14 @@
     "mysql": "^2.18.1",
     "mysql2": "^2.3.3",
     "nodemon": "^2.0.19"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wango-wango/suyoung-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wango-wango/suyoung-node/issues"
+  },
+  "homepage": "https://github.com/wango-wango/suyoung-node#readme",
+  "description": ""
 }
