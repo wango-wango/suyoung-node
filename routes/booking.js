@@ -19,6 +19,12 @@ router.get("/select", async (req, res) => {
     const [result] = await db.query(sqlSelectRoom);
     res.send(result);
 });
+router.get("/selected:roomID", async (req, res) => {
+    const roomID = req.params.roomID;
+    const sqlSelectRoom = `SELECT * FROM room r JOIN room_type rt ON r.room_type_id = rt.R_id WHERE r.sid = ${roomID}`;
+    const [result] = await db.query(sqlSelectRoom);
+    res.send(result);
+});
 
 router.post("/add", async (req, res) => {
     const sqlInsertRoom =
@@ -38,6 +44,45 @@ router.post("/add", async (req, res) => {
         roomImg,
         roomRec,
     ]);
+});
+
+//delete
+router.delete("/delete/:roomName", async (req, res) => {
+    // 從api params 取前端回傳的值
+    const deleteRoom = req.params.roomName;
+    const sqlDeleteRoom = "DELETE FROM `room` WHERE `room`.`room_name` = ?";
+    const [result] = await db.query(
+        sqlDeleteRoom,
+        [deleteRoom],
+        function (err, result) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(result);
+            }
+        }
+    );
+    res.send(result);
+});
+//update
+router.put("/update:roomSid/:roomTypeId", async (req, res) => {
+    const RoomSid = req.params.roomSid;
+    const TypeSid = req.params.roomTypeId;
+    const sqlInsertRoom = `UPDATE room SET room_name = ?, room_price = ?, person_num = ?,room_image = ?, recommend = ?, create_at = NOW() WHERE sid = ${RoomSid};`;
+    const sqlInsertType = `UPDATE room_type SET room_type=? WHERE R_id = ${TypeSid}`;
+    // 從req.body 取前端回傳的值 並解構賦值
+    const { roomType, roomName, roomPrice, personNum, roomImg, roomRec } =
+        req.body;
+    const [result1] = await db.query(sqlInsertRoom, [
+        roomName,
+        roomPrice,
+        personNum,
+        roomImg,
+        roomRec,
+    ]);
+    const [result2] = await db.query(sqlInsertType, [roomType]);
+    const result3 = [...result1, ...result2];
+    res.send(result3);
 });
 
 module.exports = router;
