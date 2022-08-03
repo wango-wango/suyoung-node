@@ -5,10 +5,37 @@ const app = express();
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 const multer = require("multer");
+const moment = require("moment-timezone");
+const fileUpload = require("express-fileupload");
+
+const { toDateString, toDatetimeString } = require(__dirname +
+    "/modules/date-tools.js");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.json());
+app.use(express.static("public"));
+app.use("/avatar_img", express.static(__dirname + "/./public/avartar_img"));
+
+app.use(
+    fileUpload({
+        createParentPath: true,
+    })
+);
+
+app.use((req, res, next) => {
+    res.locals.toDateString = toDateString;
+    res.locals.toDatetimeString = toDatetimeString;
+
+    const auth = req.get("Authorization");
+    res.locals.loginUser = null;
+    if (auth && auth.indexOf("Bearer ") === 0) {
+        const token = auth.slice(7);
+        res.locals.loginUser = jwt.verify(token, process.env.JWT_SECRET);
+    }
+
+    next();
+});
 
 app.use("/", require(__dirname + "/routes/index"));
 app.use("/booking", require(__dirname + "/routes/booking"));
