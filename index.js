@@ -5,6 +5,7 @@ const app = express();
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 const multer = require("multer");
+const upload = require(__dirname + "/modules/upload-images");
 const moment = require("moment-timezone");
 const fileUpload = require("express-fileupload");
 

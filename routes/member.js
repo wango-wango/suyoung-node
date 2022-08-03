@@ -6,6 +6,8 @@ const router = express.Router();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
+const multer = require("multer");
+const upload = require(__dirname + "/../modules/upload-images");
 const jwt = require("jsonwebtoken");
 const SqlString = require("sqlstring");
 const { toDateString, toDatetimeString } = require(__dirname +
@@ -20,15 +22,24 @@ router.use(express.json());
 
 router.use("/avatar_img", express.static(__dirname + "/../public/avartar_img"));
 
-router.post("/upload-avatar/:userId", async (req, res) => {
-    const userId = await req.params.userId;
+router.put("/try-upload", upload.single("avatar"), async (req, res) => {
+    const url = req.body.avatar;
+    const sid = req.body.sid;
 
-    if (!userId) {
-        return res.json({ message: "didn't get userId", code: "400" });
+    const sql = "UPDATE `memberdata` SET`m_avatar`=? WHERE `m_id`=?";
+
+    const [result] = await db.query(sql, [url, sid]);
+
+    if (result.affectedRows !== 0) {
+        res.json({ url: url, success: true });
+    } else {
+        res.json("file uploaded failed");
     }
 
-    console.log(req.files.avatar.name);
+    // res.json(req.file);
+});
 
+router.post("/upload-avatar", async (req, res) => {
     try {
         if (!req.files) {
             res.send({
@@ -36,36 +47,88 @@ router.post("/upload-avatar/:userId", async (req, res) => {
                 message: "No file uploaded",
             });
         } else {
+            //使用輸入框的名稱來獲取上傳檔案 (例如 "avatar")
             let avatar = req.files.avatar;
 
             //使用 mv() 方法來移動上傳檔案到要放置的目錄裡 (例如 "uploads")
             avatar.mv("./public/avatar_img/" + avatar.name);
 
-            const url = `http://localhost:3700/avatar_img/${avatar.name}`;
-
-            const sql = "UPDATE `memberdata` SET `m_avatar`=? WHERE `m_id` =? ";
-
-            const [result] = await db.query(sql, [url, userId]);
-
-            console.log(result);
-
-            if (result.length) {
-                res.json({
-                    status: true,
-                    message: "File is uploaded",
-                    data: {
-                        url: url,
-                        name: avatar.name,
-                        mimetype: avatar.mimetype,
-                        size: avatar.size,
-                    },
-                });
-            }
+            //送出回應
+            res.json({
+                status: true,
+                message: "File is uploaded",
+                data: {
+                    name: avatar.name,
+                    mimetype: avatar.mimetype,
+                    size: avatar.size,
+                },
+            });
         }
     } catch (err) {
         res.status(500).json(err);
     }
 });
+
+// router.post("/upload-avatar", (req, res, next) => {
+//     console.log(req.files.avatar);
+
+//     // const userId = await req.params.userId;
+
+//     // console.log(userId);
+
+//     // return;
+
+//     // if (!userId) {
+//     //     return res.json({ message: "didn't get userId", code: "400" });
+//     // }
+
+//     // if (userId && req.files === null) {
+//     //     console.log(req.files);
+
+//     //     return;
+//     // }
+
+//     // console.log(req.files.avatar.name);
+
+//     try {
+//         if (!req.files) {
+//             res.send({
+//                 status: false,
+//                 message: "No file uploaded",
+//             });
+//         } else {
+//             let avatar = req.files.avatar;
+
+//             //使用 mv() 方法來移動上傳檔案到要放置的目錄裡 (例如 "uploads")
+//             // avatar.mv("./public/avatar_img/" + avatar.name);
+
+//             // const url = `http://localhost:3700/avatar_img/${avatar.name}`;
+
+//             // const sql = "UPDATE `memberdata` SET `m_avatar`=? WHERE `m_id` =? ";
+
+//             // const [result] = await db.query(sql, [url, userId]);
+
+//             // console.log(result);
+
+//             // if (result.length) {
+
+//             // }
+
+//             res.json({
+//                 status: true,
+//                 message: "File is uploaded",
+//                 data: {
+//                     url: url,
+//                     name: avatar.name,
+//                     mimetype: avatar.mimetype,
+//                     size: avatar.size,
+//                 },
+//             });
+//         }
+//     } catch (err) {
+//         res.status(500).json(err);
+//     }
+// });
 
 router.put("/updatePassword/:userId", async (req, res, next) => {
     const userId = req.params.userId;
@@ -193,6 +256,8 @@ router.put("/:userId", async (req, res, next) => {
 
 router.get("/:userId", async (req, res, next) => {
     const userId = await req.params.userId;
+
+    console.log(userId);
 
     if (!userId) {
         return res.json({ message: "此用戶不存在", code: "400" });

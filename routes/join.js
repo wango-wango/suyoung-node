@@ -10,6 +10,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const SqlString = require("sqlstring");
 
+const { toDateString, toDatetimeString } = require(__dirname +
+    "../../modules/date-tools");
+
 //extended： 使用 qs 進行解析，若為 false，則採用 querystring 進行解析，預設為 true
 router.use(bodyParser.urlencoded({ extended: false }));
 // cors 允許跨領域傳輸資料
@@ -34,6 +37,10 @@ router.post("/login", async (req, res) => {
         return res.json(output);
     }
     const row = r1[0];
+
+    row.m_birthday = toDateString(row.m_birthday);
+    row.create_at = toDateString(row.create_at);
+
     console.log(row);
 
     output.success = await bcrypt.compare(req.body.password, r1[0].m_passwd);
@@ -55,6 +62,7 @@ router.post("/login", async (req, res) => {
             token,
             account: r1[0].m_username,
             sid: r1[0].m_id,
+            row,
         };
         console.log(output.data);
     }
@@ -85,20 +93,6 @@ router.post("/register", async (req, res) => {
         const [result] = await db.query(sql, [account, hashPw, email]);
         res.json(result);
     }
-});
-
-router.get("/check-login", async (req, res, next) => {
-    // let output = {
-    //     success: false,
-    //     error: "",
-    // };
-    // if (res.locals.loginUser && res.locals.loginUser.account) {
-    //     output.success = true;
-    // } else {
-    //     output.error = "沒有權限，請先登入";
-    // }
-    // output.loginUser = res.locals.loginUser;
-    // res.json(output);
 });
 
 // router 一定要回傳module
