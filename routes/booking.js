@@ -99,17 +99,23 @@ router.get("/selectTag", async (req, res) => {
 // });
 
 router.post("/add", async (req, res) => {
-    const sqlInsertMemberRoom =
-        "INSERT INTO `favlist`(`m_id`, `fav_list_type`, `fav_list_kind`) VALUES (?,?,?)";
-
     const { roomSid, memberId, favType } = req.body;
 
-    const [add] = await db.query(sqlInsertMemberRoom, [
-        memberId,
-        favType,
-        roomSid,
-    ]);
-    console.log(add);
+    const sqlCountMemberRoom =
+        "SELECT COUNT(*) FROM `favlist` f WHERE f.m_id = ? AND f.fav_list_kind = ?";
+    const Mcount = await db.query(sqlCountMemberRoom, [memberId, favType]);
+
+    if (Mcount === 0) {
+        const sqlInsertMemberRoom =
+            "INSERT INTO `favlist`(`m_id`, `fav_list_type`, `fav_list_kind`) VALUES (?,?,?)";
+
+        const [add] = await db.query(sqlInsertMemberRoom, [
+            memberId,
+            favType,
+            roomSid,
+        ]);
+        console.log(add);
+    }
 });
 
 //delete
