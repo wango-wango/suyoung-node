@@ -69,67 +69,6 @@ router.post("/upload-avatar", async (req, res) => {
     }
 });
 
-// router.post("/upload-avatar", (req, res, next) => {
-//     console.log(req.files.avatar);
-
-//     // const userId = await req.params.userId;
-
-//     // console.log(userId);
-
-//     // return;
-
-//     // if (!userId) {
-//     //     return res.json({ message: "didn't get userId", code: "400" });
-//     // }
-
-//     // if (userId && req.files === null) {
-//     //     console.log(req.files);
-
-//     //     return;
-//     // }
-
-//     // console.log(req.files.avatar.name);
-
-//     try {
-//         if (!req.files) {
-//             res.send({
-//                 status: false,
-//                 message: "No file uploaded",
-//             });
-//         } else {
-//             let avatar = req.files.avatar;
-
-//             //使用 mv() 方法來移動上傳檔案到要放置的目錄裡 (例如 "uploads")
-//             // avatar.mv("./public/avatar_img/" + avatar.name);
-
-//             // const url = `http://localhost:3700/avatar_img/${avatar.name}`;
-
-//             // const sql = "UPDATE `memberdata` SET `m_avatar`=? WHERE `m_id` =? ";
-
-//             // const [result] = await db.query(sql, [url, userId]);
-
-//             // console.log(result);
-
-//             // if (result.length) {
-
-//             // }
-
-//             res.json({
-//                 status: true,
-//                 message: "File is uploaded",
-//                 data: {
-//                     url: url,
-//                     name: avatar.name,
-//                     mimetype: avatar.mimetype,
-//                     size: avatar.size,
-//                 },
-//             });
-//         }
-//     } catch (err) {
-//         res.status(500).json(err);
-//     }
-// });
-
 router.put("/updatePassword/:userId", async (req, res, next) => {
     const userId = req.params.userId;
 
@@ -222,7 +161,9 @@ router.put("/:userId", async (req, res, next) => {
 
     const user = req.body;
 
-    if (!user.m_id || !user.email) {
+    // console.log(user);
+
+    if (!user.phone || !user.email) {
         return res.json({ message: "fail", code: "400" });
     }
 
@@ -252,6 +193,43 @@ router.put("/:userId", async (req, res, next) => {
     } else {
         return res.json({ message: "fail123", code: "400" });
     }
+});
+
+router.delete("/favlist", async (req, res, next) => {
+    const { member, roomSid } = await req.query;
+
+    if (!member || !roomSid) {
+        return res.json({ message: "無使用者資料", code: "400" });
+    }
+
+    const sql = "DELETE FROM `favlist` WHERE `fav_list_kind` =? AND m_id = ?";
+
+    const [result] = await db.query(sql, [roomSid, member]);
+
+    if (result.affectedRows === 0) {
+        res.json({ message: "沒有資料被刪掉", code: "404" });
+    }
+
+    // res.json(result);
+});
+
+router.get("/favlist/:userId", async (req, res, next) => {
+    const userId = await req.params.userId;
+
+    console.log(userId);
+
+    if (!userId) {
+        return res.json({ message: "無使用者資料", code: "400" });
+    }
+
+    const sql =
+        "SELECT `favlist_id`, aa.`m_id`, `fav_list_type`, `fav_list_kind`, bb.`room_name` , `sid`,`room_image` ,dd.`favlist_type_id` , EE.room_folder FROM `favlist` AS aa ,`room` AS bb,`memberdata`AS cc ,`favlist_type` AS dd, `room_type` AS EE WHERE aa.m_id = cc.m_id AND aa.fav_list_type= dd.favlist_type_id AND aa.fav_list_kind = bb.sid AND EE.R_id = bb.room_type_id AND cc.m_id =?";
+
+    const [result] = await db.query(sql, [userId]);
+
+    console.log(result);
+
+    res.json(result);
 });
 
 router.get("/:userId", async (req, res, next) => {

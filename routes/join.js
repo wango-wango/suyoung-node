@@ -62,7 +62,7 @@ router.post("/login", async (req, res) => {
             token,
             account: r1[0].m_username,
             sid: r1[0].m_id,
-            row,
+            ...row,
         };
         console.log(output.data);
     }
