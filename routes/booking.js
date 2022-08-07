@@ -16,6 +16,7 @@ router.use(express.json());
 const getRoomHandler = async (req, res) => {
     let output = {
         roomList: [],
+        roomDetail: [],
         tagList: [],
         eqiList: [],
         picList: [],
@@ -35,7 +36,7 @@ const getRoomHandler = async (req, res) => {
     if (roomSid) whereNot += `WHERE r.sid NOT IN (${roomSid})`;
 
     let wherePerson = "";
-    if (personNum) wherePerson += `AND r.person_num = (${personNum})`;
+    if (personNum) wherePerson += `AND r.person_num <= ${personNum}`;
 
     let whereRule = "";
     if (roomSid) whereRule += `WHERE room_id = ${roomSid}`;
@@ -44,7 +45,7 @@ const getRoomHandler = async (req, res) => {
     const [r1] = await db.query(sqlSelectRoom);
 
     // console.log(r1);
-    output.roomList = r1;
+    output.roomDetail = r1;
 
     const sqlSelectTag = `SELECT rt.type, r.sid FROM room_tag_room rtr JOIN room_tag rt ON rtr.tag_id = rt.t_id JOIN room r ON r.sid = rtr.room_id ${where};`;
     const [r2] = await db.query(sqlSelectTag);
@@ -74,21 +75,56 @@ const getRoomHandler = async (req, res) => {
     const sqlRules = `SELECT * FROM room_CheckIn_Roles ${whereRule}`;
     const [r6] = await db.query(sqlRules);
 
-    // console.log(r6);
-    output.ruleList = r6;
+    // 大魔王
+    const {
+        adults,
+        startDate,
+        endDate,
+        roomType,
+        startPrice,
+        endPrice,
+        tagCheck,
+        popular,
+        recommend,
+        roomSelector,
+    } = req.query;
+
+    if (adults) where += `AND r.person_num < ${adults}`;
+    if (roomType) where += `AND rt.room_folder IN ("${roomType}")`;
+    if (tagCheck) where += `AND rtag.t_id IN (${tagCheck})`;
+    if (roomSelector) where += `AND r.room_name IN ("${roomSelector}")`;
+    if (recommend) where += `AND r.recommend = ${recommend}`;
+    if (startPrice && endPrice)
+        where += `r.room_price BETWEEN ${startPrice} AND ${endPrice}`;
+
+    const sqlVecna = `SELECT * FROM room r JOIN room_type rt ON r.room_type_id = rt.R_id ${where}`;
+    const [vecna] = await db.query(sqlVecna);
+
+    console.log(vecna);
+    output.roomList = vecna;
 
     return output;
 };
 
+// 房型
 router.get("/selectRoom", async (req, res) => {
     const output = await getRoomHandler(req, res);
     res.json(output);
 });
 
+// 全部的tag
 router.get("/selectTag", async (req, res) => {
     const sqlSelectTag = "SELECT * FROM room_tag";
     const [resultTag] = await db.query(sqlSelectTag);
     res.send(resultTag);
+});
+
+// favlist
+router.get("/favlist", async (req, res) => {
+    const { memberId } = req.query;
+    const sqlFavlist = `SELECT favlist.fav_list_kind FROM favlist WHERE m_id = ${memberId}`;
+    const [resultFav] = await db.query(sqlFavlist);
+    res.send(resultFav);
 });
 
 // router.get("/selected:roomID", async (req, res) => {
@@ -98,9 +134,11 @@ router.get("/selectTag", async (req, res) => {
 //     res.send(result);
 // });
 
-router.post("/add", async (req, res) => {
+// 新增資料到favlist
+router.post("/addKeep", async (req, res) => {
     const { roomSid, memberId, favType } = req.body;
 
+    // 判斷是否已新增
     const sqlCountMemberRoom =
         "SELECT COUNT(1) total FROM `favlist` f WHERE f.m_id = ? AND f.fav_list_kind = ?";
     const [[{ total }]] = await db.query(sqlCountMemberRoom, [
@@ -108,8 +146,8 @@ router.post("/add", async (req, res) => {
         roomSid,
     ]);
 
-    console.log(total);
-
+    // console.log(total);
+    // 如果資料內沒有才加入
     if (!total) {
         const sqlInsertMemberRoom =
             "INSERT INTO `favlist`(`m_id`, `fav_list_type`, `fav_list_kind`) VALUES (?,?,?)";
@@ -124,23 +162,24 @@ router.post("/add", async (req, res) => {
 });
 
 //delete
-// router.delete("/delete/:roomName", async (req, res) => {
-//     // 從api params 取前端回傳的值
-//     const deleteRoom = req.params.roomName;
-//     const sqlDeleteRoom = "DELETE FROM `room` WHERE `room`.`room_name` = ?";
-//     const [result] = await db.query(
-//         sqlDeleteRoom,
-//         [deleteRoom],
-//         function (err, result) {
-//             if (err) {
-//                 console.log(err);
-//             } else {
-//                 console.log(result);
-//             }
-//         }
-//     );
-//     res.send(result);
-// });
+router.delete("/deleteKeep", async (req, res) => {
+    // 從api params 取前端回傳的值
+    const { memberId, roomSid } = req.query;
+    const sqlDeleteKeep =
+        "DELETE FROM favlist WHERE m_id = ? AND fav_list_kind = ?;";
+    const [result] = await db.query(
+        sqlDeleteKeep,
+        [memberId, roomSid],
+        function (err, result) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(result);
+            }
+        }
+    );
+    res.send(result);
+});
 //update
 // router.put("/update:roomSid/:roomTypeId", async (req, res) => {
 //     const RoomSid = req.params.roomSid;
