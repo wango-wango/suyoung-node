@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： localhost
--- 產生時間： 2022 年 08 月 08 日 17:34
+-- 產生時間： 2022 年 08 月 08 日 17:36
 -- 伺服器版本： 10.4.21-MariaDB
 -- PHP 版本： 7.4.29
 
@@ -424,6 +424,33 @@ INSERT INTO `room_eq_room` (`eqr_id`, `eq_id`, `room_id`) VALUES
 -- --------------------------------------------------------
 
 --
+-- 資料表結構 `room_reservation`
+--
+
+CREATE TABLE `room_reservation` (
+  `sid` int(11) NOT NULL,
+  `member_id` int(11) NOT NULL,
+  `room_id` int(11) NOT NULL,
+  `room_type_id` int(11) NOT NULL,
+  `num_adults` int(11) NOT NULL,
+  `num_children` int(11) NOT NULL,
+  `Booking_Date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `price` int(11) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- 傾印資料表的資料 `room_reservation`
+--
+
+INSERT INTO `room_reservation` (`sid`, `member_id`, `room_id`, `room_type_id`, `num_adults`, `num_children`, `Booking_Date`, `price`, `start_date`, `end_date`) VALUES
+(1, 127, 1, 1, 4, 2, '2022-08-08 03:52:59', 100, '2022-08-10', '2022-08-13'),
+(2, 127, 3, 1, 8, 0, '2022-08-08 03:52:59', 200, '2022-08-13', '2022-08-15');
+
+-- --------------------------------------------------------
+
+--
 -- 資料表結構 `room_tag`
 --
 
@@ -584,6 +611,15 @@ ALTER TABLE `room_eq_room`
   ADD KEY `room_id` (`room_id`);
 
 --
+-- 資料表索引 `room_reservation`
+--
+ALTER TABLE `room_reservation`
+  ADD PRIMARY KEY (`sid`),
+  ADD KEY `member_id` (`member_id`),
+  ADD KEY `room_id` (`room_id`),
+  ADD KEY `room_type_id` (`room_type_id`);
+
+--
 -- 資料表索引 `room_tag`
 --
 ALTER TABLE `room_tag`
@@ -638,6 +674,12 @@ ALTER TABLE `room_eq_room`
   MODIFY `eqr_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=183;
 
 --
+-- 使用資料表自動遞增(AUTO_INCREMENT) `room_reservation`
+--
+ALTER TABLE `room_reservation`
+  MODIFY `sid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- 使用資料表自動遞增(AUTO_INCREMENT) `room_tag`
 --
 ALTER TABLE `room_tag`
@@ -678,6 +720,14 @@ ALTER TABLE `room_detail_picture`
 ALTER TABLE `room_eq_room`
   ADD CONSTRAINT `room_eq_room_ibfk_1` FOREIGN KEY (`eq_id`) REFERENCES `room_equipment` (`e_id`),
   ADD CONSTRAINT `room_eq_room_ibfk_2` FOREIGN KEY (`room_id`) REFERENCES `room` (`sid`);
+
+--
+-- 資料表的限制式 `room_reservation`
+--
+ALTER TABLE `room_reservation`
+  ADD CONSTRAINT `room_reservation_ibfk_1` FOREIGN KEY (`member_id`) REFERENCES `memberdata` (`m_id`),
+  ADD CONSTRAINT `room_reservation_ibfk_2` FOREIGN KEY (`room_id`) REFERENCES `room` (`sid`),
+  ADD CONSTRAINT `room_reservation_ibfk_3` FOREIGN KEY (`room_type_id`) REFERENCES `room_type` (`R_id`);
 
 --
 -- 資料表的限制式 `room_tag_room`
