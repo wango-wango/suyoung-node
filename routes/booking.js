@@ -115,10 +115,11 @@ const getRoomHandler = async (req, res) => {
 
     // 取得sid 後 告訴 roomList 不能包含那些房間
     const reCount = reservationCount.map((v) => v.room_id);
-    if (startDate && endDate) where += `AND r.sid NOT IN (${reCount}) `;
-
-    console.log(reservationCount);
-    console.log(reCount);
+    if (startDate && endDate) {
+        if (reCount && reCount.length) {
+            where += `AND r.sid NOT IN (${reCount}) `;
+        }
+    }
 
     // 取得最多人訂購的前三名
     const sqlpopularCount = `SELECT room_id , COUNT(1) num FROM room_reservation GROUP BY room_id ORDER BY num DESC LIMIT 3;`;
