@@ -26,7 +26,7 @@ const getRoomHandler = async (req, res) => {
     let personNum = req.query.personNum || "";
     let roomSid = req.query.roomSid || "";
 
-    let where = "WHERE 1 ";
+    let where = "";
     if (roomSid) where += `AND r.sid = ${roomSid}`;
 
     let wherePic = "";
@@ -36,7 +36,7 @@ const getRoomHandler = async (req, res) => {
     if (roomSid) whereNot += `WHERE r.sid NOT IN (${roomSid})`;
 
     let wherePerson = "";
-    if (personNum) wherePerson += `AND r.person_num <= ${personNum}`;
+    if (personNum) wherePerson += `AND r.person_num = ${personNum}`;
 
     let whereRule = "";
     if (roomSid) whereRule += `WHERE room_id = ${roomSid}`;
@@ -44,36 +44,31 @@ const getRoomHandler = async (req, res) => {
     const sqlSelectRoom = `SELECT * FROM room r JOIN room_type rt ON r.room_type_id = rt.R_id ${where}`;
     const [r1] = await db.query(sqlSelectRoom);
 
-    // console.log(r1);
     output.roomDetail = r1;
 
     const sqlSelectTag = `SELECT rt.type, r.sid FROM room_tag_room rtr JOIN room_tag rt ON rtr.tag_id = rt.t_id JOIN room r ON r.sid = rtr.room_id ${where};`;
     const [r2] = await db.query(sqlSelectTag);
 
-    // console.log(r2);
     output.tagList = r2;
 
     const sqlSelectEquipment = `SELECT r.sid ,re.equipment ,re.place FROM room_eq_room rer JOIN room r ON r.sid = rer.room_id JOIN room_equipment re ON re.e_id = rer.eq_id ${where}`;
     const [r3] = await db.query(sqlSelectEquipment);
-    // res.send(r1);
-    // console.log(r3);
+
     output.eqiList = r3;
 
     const sqlRoomPicture = `SELECT * FROM room_detail_picture rp JOIN room_type rt ON rt.R_id = rp.roomType_id ${wherePic};`;
     const [r4] = await db.query(sqlRoomPicture);
 
-    // console.log(r4);
     output.picList = r4;
 
     const sqlOtherRoom = `SELECT * FROM room r JOIN room_type rt ON r.room_type_id = rt.R_id ${whereNot} ${wherePerson}`;
     const [r5] = await db.query(sqlOtherRoom);
 
-    // console.log(r5);
-    // console.log(sqlOtherRoom);
     output.otherRoomList = r5;
 
     const sqlRules = `SELECT * FROM room_CheckIn_Roles ${whereRule}`;
     const [r6] = await db.query(sqlRules);
+    output.ruleList = r6;
 
     // 大魔王
     const {
@@ -89,18 +84,62 @@ const getRoomHandler = async (req, res) => {
         roomSelector,
     } = req.query;
 
-    if (adults) where += `AND r.person_num < ${adults}`;
-    if (roomType) where += `AND rt.room_folder IN ("${roomType}")`;
-    if (tagCheck) where += `AND rtag.t_id IN (${tagCheck})`;
-    if (roomSelector) where += `AND r.room_name IN ("${roomSelector}")`;
-    if (recommend) where += `AND r.recommend = ${recommend}`;
+    // 從前端取值後 進行 sql 篩選
+    if (adults) where += `AND r.person_num <= ${adults} `;
+    if (roomType) where += `AND rt.R_id IN (${roomType}) `;
+    if (roomSelector) where += `AND r.sid IN (${roomSelector}) `;
+    if (recommend === "1") where += `AND r.recommend = ${recommend} `;
     if (startPrice && endPrice)
-        where += `r.room_price BETWEEN ${startPrice} AND ${endPrice}`;
+        where += `AND r.room_price BETWEEN ${startPrice} AND ${endPrice} `;
 
+    // 確認是否含有該標籤的sid
+    let tag = "";
+    if (tagCheck) {
+        tag += `AND rtr.tag_id IN (${tagCheck})`;
+    }
+
+    const sqlCheckTag = `SELECT r.sid FROM room_tag_room rtr ,room_tag rt ,room r WHERE rtr.tag_id = rt.t_id AND rtr.room_id = r.sid ${tag} GROUP BY r.sid`;
+    const [checkTagRoom] = await db.query(sqlCheckTag);
+
+    const reCheckTagRoom = checkTagRoom.map((v) => v.sid);
+    if (tagCheck) where += `AND r.sid IN (${reCheckTagRoom}) `;
+
+    //查詢訂單
+    let date = "";
+    if (startDate && endDate) {
+        date += `AND end_date BETWEEN "${startDate}" AND "${endDate}"`;
+    }
+    // 查詢訂單含有該日期的sid
+    const sqlReservationCount = `SELECT room_id FROM room_reservation WHERE 1 ${date}`;
+    const [reservationCount] = await db.query(sqlReservationCount);
+
+    // 取得sid 後 告訴 roomList 不能包含那些房間
+    const reCount = reservationCount.map((v) => v.room_id);
+    if (startDate && endDate) where += `AND r.sid NOT IN (${reCount}) `;
+
+    console.log(reservationCount);
+    console.log(reCount);
+
+    // 取得最多人訂購的前三名
+    const sqlpopularCount = `SELECT room_id , COUNT(1) num FROM room_reservation GROUP BY room_id ORDER BY num DESC LIMIT 3;`;
+    const [popularCount] = await db.query(sqlpopularCount);
+
+    if (popular === "1")
+        // 利用子查詢 加入剛剛查訊出來的 room_id 和 num 加入到列表中
+        // 再利用計數的 num 做排序
+
+        where += `JOIN (
+        SELECT room_id , COUNT(1) num FROM room_reservation GROUP BY room_id ORDER BY num DESC LIMIT 3
+    ) rr
+    ON r.sid=rr.room_id
+    ORDER BY rr.num DESC `;
+
+    console.log(where);
+
+    // 最後送出的 sql
     const sqlVecna = `SELECT * FROM room r JOIN room_type rt ON r.room_type_id = rt.R_id ${where}`;
     const [vecna] = await db.query(sqlVecna);
 
-    console.log(vecna);
     output.roomList = vecna;
 
     return output;
@@ -146,7 +185,6 @@ router.post("/addKeep", async (req, res) => {
         roomSid,
     ]);
 
-    // console.log(total);
     // 如果資料內沒有才加入
     if (!total) {
         const sqlInsertMemberRoom =
