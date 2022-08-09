@@ -22,24 +22,32 @@ router.use(express.json());
 
 router.use("/avatar_img", express.static(__dirname + "/../public/avartar_img"));
 
-router.put("/try-upload", upload.single("avatar"), async (req, res) => {
-    const url = req.body.avatar;
-    const sid = req.body.sid;
+// router.put("/try-upload", upload.single("avatar"), async (req, res) => {
+//     const url = req.body.avatar;
+//     const sid = req.body.sid;
 
-    const sql = "UPDATE `memberdata` SET`m_avatar`=? WHERE `m_id`=?";
+//     console.log(req.body);
 
-    const [result] = await db.query(sql, [url, sid]);
+//     const sql = "UPDATE `memberdata` SET`m_avatar`=? WHERE `m_id`=?";
 
-    if (result.affectedRows !== 0) {
-        res.json({ url: url, success: true });
-    } else {
-        res.json("file uploaded failed");
+//     const [result] = await db.query(sql, [url, sid]);
+
+//     if (result.affectedRows !== 0) {
+//         res.json({ url: url, success: true });
+//     } else {
+//         res.json("file uploaded failed");
+//     }
+
+//     // res.json(req.file);
+// });
+
+router.post("/upload-avatar/:userId", async (req, res) => {
+    const userId = req.params.userId;
+
+    if (!userId) {
+        return res.json({ message: "didn't get userId", code: "400" });
     }
 
-    // res.json(req.file);
-});
-
-router.post("/upload-avatar", async (req, res) => {
     try {
         if (!req.files) {
             res.send({
@@ -52,6 +60,14 @@ router.post("/upload-avatar", async (req, res) => {
 
             //使用 mv() 方法來移動上傳檔案到要放置的目錄裡 (例如 "uploads")
             avatar.mv("./public/avatar_img/" + avatar.name);
+
+            const url = `http://localhost:3700/avatar_img/${avatar.name}`;
+
+            const sql = "UPDATE `memberdata` SET`m_avatar`=? WHERE `m_id`=?";
+
+            const [result] = await db.query(sql, [url, userId]);
+
+            console.log(result);
 
             //送出回應
             res.json({
@@ -66,6 +82,38 @@ router.post("/upload-avatar", async (req, res) => {
         }
     } catch (err) {
         res.status(500).json(err);
+    }
+});
+
+router.get("/coupon/:userId", async (req, res, next) => {
+    const userId = req.params.userId;
+
+    if (!userId) {
+        return res.json({ message: "didn't get userId", code: "400" });
+    }
+
+    const sql = `SELECT * FROM  member_coupon mc JOIN memberdata m ON m.m_id = mc.m_id JOIN coupon c ON c.coupon_id = mc.coupon_id WHERE m.m_id =${userId}`;
+    const [result] = await db.query(sql, [userId]);
+
+    for (let i = 0; i < result.length; i++) {
+        result[i].start_date = toDateString(result[i].start_date);
+        result[i].expire_date = toDateString(result[i].expire_date);
+    }
+
+    console.log(result);
+
+    if (!result.length) {
+        return res.json({
+            success: false,
+            message: "沒有此用戶資料",
+            code: "404",
+        });
+    } else {
+        return res.json({
+            success: true,
+            code: "200",
+            result,
+        });
     }
 });
 

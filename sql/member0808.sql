@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： localhost
--- 產生時間： 2022 年 07 月 26 日 18:38
+-- 產生時間： 2022 年 08 月 09 日 05:03
 -- 伺服器版本： 10.4.21-MariaDB
 -- PHP 版本： 7.4.29
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- 資料庫： `su_young`
+-- 資料庫： `shuyoung`
 --
 
 -- --------------------------------------------------------
@@ -49,6 +49,8 @@ INSERT INTO `admin_list` (`admin_id`, `admin_account`, `admin_password`) VALUES
 CREATE TABLE `coupon` (
   `coupon_id` int(11) NOT NULL,
   `coupon_discount` varchar(255) NOT NULL,
+  `discount_name` varchar(255) DEFAULT NULL,
+  `discount_number` varchar(255) DEFAULT NULL,
   `start_date` date NOT NULL,
   `expire_date` date NOT NULL,
   `create_date` datetime NOT NULL,
@@ -59,11 +61,11 @@ CREATE TABLE `coupon` (
 -- 傾印資料表的資料 `coupon`
 --
 
-INSERT INTO `coupon` (`coupon_id`, `coupon_discount`, `start_date`, `expire_date`, `create_date`, `room_id`) VALUES
-(1, '0.85', '2022-06-25', '2022-07-05', '2022-07-01 11:26:54', 0),
-(2, '500', '2022-07-06', '2022-07-30', '2022-07-01 11:28:16', 0),
-(3, '0.9', '2022-07-07', '2022-07-12', '2022-07-01 11:30:52', 0),
-(4, '0.9', '2022-07-07', '2022-07-12', '2022-07-01 11:30:52', 0);
+INSERT INTO `coupon` (`coupon_id`, `coupon_discount`, `discount_name`, `discount_number`, `start_date`, `expire_date`, `create_date`, `room_id`) VALUES
+(1, '0.85', '訂單85折優惠', 'YOUNG85', '2022-06-25', '2022-09-10', '2022-07-01 11:26:54', 0),
+(2, '500', '訂單折扣500元優惠', 'WELCOMESHU', '2022-07-06', '2022-09-30', '2022-07-01 11:28:16', 0),
+(3, '0.9', '訂單9折優惠', 'SHUYOUNG99', '2022-07-07', '2022-10-12', '2022-07-01 11:30:52', 0),
+(5, '100', '新會員100元折價優惠', 'CAMP100', '2022-08-22', '2022-11-13', '2022-08-08 08:28:34', 0);
 
 -- --------------------------------------------------------
 
@@ -120,7 +122,34 @@ CREATE TABLE `favlist` (
 
 INSERT INTO `favlist` (`favlist_id`, `m_id`, `fav_list_type`, `fav_list_kind`) VALUES
 (1, 1, '1', '10'),
-(2, 1, '1', '5');
+(2, 1, '1', '5'),
+(24, 143, '1', '1'),
+(25, 143, '1', '2'),
+(26, 143, '1', '3'),
+(27, 143, '1', '4'),
+(28, 127, '1', '1'),
+(29, 127, '1', '2'),
+(32, 127, '1', '4');
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `favlist_type`
+--
+
+CREATE TABLE `favlist_type` (
+  `favlist_type_id` int(11) NOT NULL,
+  `favlist_type_name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- 傾印資料表的資料 `favlist_type`
+--
+
+INSERT INTO `favlist_type` (`favlist_type_id`, `favlist_type_name`) VALUES
+(1, '房型'),
+(2, '食譜'),
+(3, '活動');
 
 -- --------------------------------------------------------
 
@@ -130,7 +159,8 @@ INSERT INTO `favlist` (`favlist_id`, `m_id`, `fav_list_type`, `fav_list_kind`) V
 
 CREATE TABLE `memberdata` (
   `m_id` int(11) NOT NULL,
-  `m_name` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `m_last_name` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `m_first_name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `m_username` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
   `m_passwd` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `m_birthday` date DEFAULT NULL,
@@ -144,35 +174,36 @@ CREATE TABLE `memberdata` (
   `m_zip_code` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `m_city` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `m_area` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `m_addr` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
+  `m_addr` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `create_at` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- 傾印資料表的資料 `memberdata`
 --
 
-INSERT INTO `memberdata` (`m_id`, `m_name`, `m_username`, `m_passwd`, `m_birthday`, `m_level`, `m_email`, `m_phone`, `m_avatar`, `m_score`, `m_google_id`, `m_google_username`, `m_zip_code`, `m_city`, `m_area`, `m_addr`) VALUES
-(1, '五十嵐真貴', 'admin', '$2y$10$FO70lc.3/vTeE0Vaf7O3Jes.UArylzLnnxfZffTF7410vndnvhScm', '1998-05-05', 'member', '505050@gmail.com', '0912505050', '50.png', 500, NULL, NULL, '116', '台北市', '文山區', '地址'),
-(2, '張惠玲', 'elven', '$2y$10$YdUhOvUTvwK5oWp/i3LafOd2ImwsE/85YmmoY2konsxdmMSsvczFO', '1987-04-05', 'member', 'elven@superstar.com', '0966765556', 'D5f_bs_UIAANqHk.jpeg', 3000, NULL, NULL, '', '', '', ''),
-(3, '彭建志', 'jinglun', '$2y$10$WqB2bnMSO/wgBiHSOBV2iuLbrUCsp8VmNJdK2AyIW6IANUL9jeFjC', '1987-07-01', 'member', 'jinglun@superstar.com', '0918181111', 'D5f_bs-UwAE-vxf.jpeg', 1500, NULL, NULL, '', '', '', ''),
-(4, '謝耿鴻', 'sugie', '$2y$10$6uWtdYATI3b/wMRk.AaqIei852PLf.WjeKm8X.Asl0VTmpxCkqbW6', '1987-08-11', 'VIP', 'edreamer@gmail.com', '0914530768', 'yellowcat.png', 7000, NULL, NULL, '', '', '', ''),
-(5, '蔣志明', 'shane', '$2y$10$pWefN9xkeXOKCx59GF6ZJuSGNnIFBY4q/DCmCvAwOFtnoTCujb3Te', '1984-06-20', 'member', 'shane@superstar.com', '0946820035', '7c273f22-68e2-4c3f-bb28-cfb9c904db6b.png', 3000, NULL, NULL, '', '', '', ''),
-(6, '王佩珊', 'ivy', '$2y$10$RPrt3YfaSs0d82inYIK6he.JaPqOrisWMqASuxN5g62EyRio.lyEa', '1988-02-15', 'VIP', 'ivy@superstar.com', '0920981230', 'anya.png', 15000, NULL, NULL, '', '', '', ''),
-(7, '林志宇', 'zhong', '$2y$10$pee.jvO6f4sSKahlc4cLLO9RUMyx8aphyqkSUdwHTNSy4Ax7YPdpq', '1987-05-05', 'VIP', 'zhong@superstar.com', '0951983366', 'HrNlUNP.jpeg', 14976, NULL, NULL, '', '', '', ''),
-(8, '李曉薇', 'lala', '$2y$10$oiC9CaGiOdWu.6w5b3.b/Ora6fSuh8Lrbj8Kg5BUPT15O3QptksQS', '1985-08-30', 'member', 'lala@superstar.com', '0918123456', '9b86d7ceab3f9e2f0f543ab6f0f1ae62.jpeg', 0, NULL, NULL, '', '', '', ''),
-(9, '賴秀英', 'crystal', '$2y$10$8Q0.JEGILRM91qAlMmWnB.wpcY.rJEbgNgV5ntIlqZmdGaHPwikji', '1986-12-10', 'member', 'crystal@superstar.com', '0907408965', '467d353f7e2d43563ce13fddbb213709.gif', 796, NULL, NULL, '', '', '', ''),
-(10, '張雅琪', 'peggy', '$2y$10$RNqnXDNHkcTI2Zh2bkTKnOesz0FLXhihhT8ZL8OHoMeYSq7jsILMi', '1988-12-01', 'member', 'peggy@superstar.com', '0916456723', 'b51e871af241a73ab319ed5e00ec61ae.jpeg', 980, NULL, NULL, '', '', '', ''),
-(11, '陳燕博', 'albert', '$2y$10$seMLwqcQRQiWa0jMBAcMMertjLbrPLRGNZoKc0NZ5FxTwWha7W3lm', '1993-08-10', 'VIP', 'albert@superstar.com', '0918976588', 'd44445a8f9519816229cc4352ba1b662.jpeg', 8590, NULL, NULL, '', '', '', ''),
-(13, '黃信溢', 'dkdreamer', '$2y$10$Fx0rLJtV5mVtJzAJ52B/hup1AmviTe7Ciu0mtWBCZAkYC0qmg6OJy', '1987-04-05', 'member', 'edreamer@gmail.com', '955648889', 'd632ace1c221d953065afb4e6ad9f918.gif', 0, NULL, NULL, '', '', '', ''),
-(126, 'penpen', 'penpen', '$2y$10$Oj9N8ZsZ/N0S4aK1eLbMO.GgF8U/DEISqoy/zmIAQeKpR9bzveYf2', '2022-06-15', 'member', '123@test.com', '0912345677', 'e07e97b395c35aef13fc8e7d3c85e8e0.jpg', 499, NULL, NULL, '', '', '', ''),
-(127, '熊熊', 'bearbear', '$2y$10$eit5KXibqdyKwEjbmuuMo.Gn9EmjaUEesHazj7N2Tb0wNuAPzjA1a', '2022-05-17', 'VIP', '123@test.com', '0912345678', '8310b56cf90db2f0122ed992c7ce9cd8.jpg', 9600, NULL, NULL, '', '', '', ''),
-(132, '把餔啦', 'babula', '$2y$10$E1B/ArdG.nFLqj12Lrvtzua5knNV0Ip41Dh3HXMLqWmAU4govZZaq', '1999-02-01', 'member', '123@test.com', '0912345678', 'ee507b30b411b403711f28f6d0578ede.jpg', 300, NULL, NULL, '', '', '', ''),
-(133, '浪漫duke', 'duke', '$2y$10$UHOPdQTJNklqO4KSqwj.N.UCOO7s21fZJNNorMt1zvOJNK2t.8UW2', '2022-06-09', 'member', '1234@test.com', '0912345678', '799512d800f9ba0a2c98e1060e391285.png', 0, NULL, NULL, '', '', '', ''),
-(135, '大傑', 'jayjay', '$2y$10$cjCLBa/ld6MuIUWQdU5vMu/giVAxkJ.NNXMtFA9P2IoOr7z3Z6wdS', '1995-05-08', 'member', 'jayjay@gmail.com', '0936290633', '97cba2154af92cda4d015998eb47ed29.jpg', 0, NULL, NULL, '', '', '', ''),
-(137, NULL, NULL, NULL, NULL, 'member', NULL, NULL, NULL, 0, '107575394789859619164', '林新德', '', '', '', ''),
-(138, NULL, 'ojejoejoejoe', 'jeojeojeo@gmail.com', NULL, 'member', '$2b$10$ZJiQgnhEv4gWI6/.jS2rHe9f8BF4HS7txLOybPz1lI.11lrZlhL9e', NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL),
-(140, NULL, 'catcat', 'catcat@gmail.com', NULL, 'member', '$2b$10$dv4CRtdbc9xm//AgMBDqDOS.sghNoln1AedkHFjaLEJW2e/fD5BJq', NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL),
-(141, NULL, 'BEAR', NULL, NULL, 'member', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `memberdata` (`m_id`, `m_last_name`, `m_first_name`, `m_username`, `m_passwd`, `m_birthday`, `m_level`, `m_email`, `m_phone`, `m_avatar`, `m_score`, `m_google_id`, `m_google_username`, `m_zip_code`, `m_city`, `m_area`, `m_addr`, `create_at`) VALUES
+(1, '五十嵐真貴', NULL, 'admin', '$2y$10$FO70lc.3/vTeE0Vaf7O3Jes.UArylzLnnxfZffTF7410vndnvhScm', '1998-05-05', 'member', '505050@gmail.com', '0912505050', '50.png', 500, NULL, NULL, '116', '台北市', '文山區', '地址', '0000-00-00'),
+(2, '張惠玲', NULL, 'elven', '$2y$10$YdUhOvUTvwK5oWp/i3LafOd2ImwsE/85YmmoY2konsxdmMSsvczFO', '1987-04-05', 'member', 'elven@superstar.com', '0966765556', 'D5f_bs_UIAANqHk.jpeg', 3000, NULL, NULL, '', '', '', '', '0000-00-00'),
+(3, '彭建志', NULL, 'jinglun', '$2y$10$WqB2bnMSO/wgBiHSOBV2iuLbrUCsp8VmNJdK2AyIW6IANUL9jeFjC', '1987-07-01', 'member', 'jinglun@superstar.com', '0918181111', 'D5f_bs-UwAE-vxf.jpeg', 1500, NULL, NULL, '', '', '', '', '0000-00-00'),
+(4, '謝耿鴻', NULL, 'sugie', '$2y$10$6uWtdYATI3b/wMRk.AaqIei852PLf.WjeKm8X.Asl0VTmpxCkqbW6', '1987-08-11', 'VIP', 'edreamer@gmail.com', '0914530768', 'yellowcat.png', 7000, NULL, NULL, '', '', '', '', '0000-00-00'),
+(5, '蔣志明', NULL, 'shane', '$2y$10$pWefN9xkeXOKCx59GF6ZJuSGNnIFBY4q/DCmCvAwOFtnoTCujb3Te', '1984-06-20', 'member', 'shane@superstar.com', '0946820035', '7c273f22-68e2-4c3f-bb28-cfb9c904db6b.png', 3000, NULL, NULL, '', '', '', '', '0000-00-00'),
+(6, '王佩珊', NULL, 'ivy', '$2y$10$RPrt3YfaSs0d82inYIK6he.JaPqOrisWMqASuxN5g62EyRio.lyEa', '1988-02-15', 'VIP', 'ivy@superstar.com', '0920981230', 'anya.png', 15000, NULL, NULL, '', '', '', '', '0000-00-00'),
+(7, '林志宇', NULL, 'zhong', '$2y$10$pee.jvO6f4sSKahlc4cLLO9RUMyx8aphyqkSUdwHTNSy4Ax7YPdpq', '1987-05-05', 'VIP', 'zhong@superstar.com', '0951983366', 'HrNlUNP.jpeg', 14976, NULL, NULL, '', '', '', '', '0000-00-00'),
+(8, '李曉薇', NULL, 'lala', '$2y$10$oiC9CaGiOdWu.6w5b3.b/Ora6fSuh8Lrbj8Kg5BUPT15O3QptksQS', '1985-08-30', 'member', 'lala@superstar.com', '0918123456', '9b86d7ceab3f9e2f0f543ab6f0f1ae62.jpeg', 0, NULL, NULL, '', '', '', '', '0000-00-00'),
+(9, '賴秀英', NULL, 'crystal', '$2y$10$8Q0.JEGILRM91qAlMmWnB.wpcY.rJEbgNgV5ntIlqZmdGaHPwikji', '1986-12-10', 'member', 'crystal@superstar.com', '0907408965', '467d353f7e2d43563ce13fddbb213709.gif', 796, NULL, NULL, '', '', '', '', '0000-00-00'),
+(10, '張雅琪', NULL, 'peggy', '$2y$10$RNqnXDNHkcTI2Zh2bkTKnOesz0FLXhihhT8ZL8OHoMeYSq7jsILMi', '1988-12-01', 'member', 'peggy@superstar.com', '0916456723', 'b51e871af241a73ab319ed5e00ec61ae.jpeg', 980, NULL, NULL, '', '', '', '', '0000-00-00'),
+(11, '陳燕博', NULL, 'albert', '$2y$10$seMLwqcQRQiWa0jMBAcMMertjLbrPLRGNZoKc0NZ5FxTwWha7W3lm', '1993-08-10', 'VIP', 'albert@superstar.com', '0918976588', 'd44445a8f9519816229cc4352ba1b662.jpeg', 8590, NULL, NULL, '', '', '', '', '0000-00-00'),
+(13, '黃信溢', NULL, 'dkdreamer', '$2y$10$Fx0rLJtV5mVtJzAJ52B/hup1AmviTe7Ciu0mtWBCZAkYC0qmg6OJy', '1987-04-05', 'member', 'edreamer@gmail.com', '955648889', 'd632ace1c221d953065afb4e6ad9f918.gif', 0, NULL, NULL, '', '', '', '', '0000-00-00'),
+(126, 'penpen', NULL, 'penpen', '$2y$10$Oj9N8ZsZ/N0S4aK1eLbMO.GgF8U/DEISqoy/zmIAQeKpR9bzveYf2', '2022-06-15', 'member', '123@test.com', '0912345677', 'e07e97b395c35aef13fc8e7d3c85e8e0.jpg', 499, NULL, NULL, '', '', '', '', '0000-00-00'),
+(127, '林', '熊熊', 'bearbear', '$2y$10$eit5KXibqdyKwEjbmuuMo.Gn9EmjaUEesHazj7N2Tb0wNuAPzjA1a', '2022-05-14', 'VIP', '123@test.com', '0912345678', 'http://localhost:3700/avatar_img/66666.jpg', 9600, NULL, NULL, '', '5', '4', '北門路一段12號1樓', '2020-01-08'),
+(132, '把餔啦', NULL, 'babula', '$2y$10$E1B/ArdG.nFLqj12Lrvtzua5knNV0Ip41Dh3HXMLqWmAU4govZZaq', '1999-02-01', 'member', '123@test.com', '0912345678', 'ee507b30b411b403711f28f6d0578ede.jpg', 300, NULL, NULL, '', '', '', '', '0000-00-00'),
+(133, '浪漫duke', NULL, 'duke', '$2y$10$UHOPdQTJNklqO4KSqwj.N.UCOO7s21fZJNNorMt1zvOJNK2t.8UW2', '2022-06-09', 'member', '1234@test.com', '0912345678', '799512d800f9ba0a2c98e1060e391285.png', 0, NULL, NULL, '', '', '', '', '0000-00-00'),
+(135, '大傑', NULL, 'jayjay', '$2y$10$cjCLBa/ld6MuIUWQdU5vMu/giVAxkJ.NNXMtFA9P2IoOr7z3Z6wdS', '1995-05-08', 'member', 'jayjay@gmail.com', '0936290633', '97cba2154af92cda4d015998eb47ed29.jpg', 0, NULL, NULL, '', '', '', '', '0000-00-00'),
+(137, NULL, NULL, NULL, NULL, NULL, 'member', NULL, NULL, NULL, 0, '107575394789859619164', '林新德', '', '', '', '', '0000-00-00'),
+(141, NULL, NULL, 'BEAR', NULL, NULL, 'member', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, '0000-00-00'),
+(143, '陳', '小明', 'yyyyy', '$2a$10$uKq8U47573Tq8W64Oofl4utXU/2JZ/3/g3IAltUkxeLNbg.ogaEKC', '2021-09-21', 'member', 'yyyy@gmail.com', '0912345678', 'http://localhost:3700/avatar_img/5555555.png', 0, NULL, NULL, NULL, '3', '2', '555555', '2022-08-05'),
+(144, '許', '純美', 'weeed', '$2a$10$PWkRZiLThcE8q1TIVuY2euSjROjuo807WN7TvaVPlvtWocsHowutO', '2001-02-05', 'member', 'weed@gmail.com', '0912456788', 'http://localhost:3700/avatar_img/W9gIYt4h.jpeg', 0, NULL, NULL, NULL, '5', '8', '竹科園區', '2022-08-05');
 
 -- --------------------------------------------------------
 
@@ -183,8 +214,8 @@ INSERT INTO `memberdata` (`m_id`, `m_name`, `m_username`, `m_passwd`, `m_birthda
 CREATE TABLE `member_coupon` (
   `sid` int(11) NOT NULL,
   `m_id` int(11) NOT NULL,
-  `coupon_id` int(11) NOT NULL,
-  `coupon_status` int(11) NOT NULL
+  `coupon_id` int(11) NOT NULL DEFAULT 1,
+  `coupon_status` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -195,7 +226,9 @@ INSERT INTO `member_coupon` (`sid`, `m_id`, `coupon_id`, `coupon_status`) VALUES
 (1, 1, 1, 0),
 (2, 2, 1, 1),
 (3, 1, 2, 0),
-(4, 1, 3, 0);
+(4, 1, 3, 0),
+(5, 127, 3, 0),
+(6, 127, 5, 0);
 
 -- --------------------------------------------------------
 
@@ -639,6 +672,12 @@ ALTER TABLE `favlist`
   ADD PRIMARY KEY (`favlist_id`);
 
 --
+-- 資料表索引 `favlist_type`
+--
+ALTER TABLE `favlist_type`
+  ADD PRIMARY KEY (`favlist_type_id`);
+
+--
 -- 資料表索引 `memberdata`
 --
 ALTER TABLE `memberdata`
@@ -680,7 +719,7 @@ ALTER TABLE `admin_list`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `coupon`
 --
 ALTER TABLE `coupon`
-  MODIFY `coupon_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `coupon_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `credit_card`
@@ -698,19 +737,25 @@ ALTER TABLE `diary_share`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `favlist`
 --
 ALTER TABLE `favlist`
-  MODIFY `favlist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `favlist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+
+--
+-- 使用資料表自動遞增(AUTO_INCREMENT) `favlist_type`
+--
+ALTER TABLE `favlist_type`
+  MODIFY `favlist_type_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `memberdata`
 --
 ALTER TABLE `memberdata`
-  MODIFY `m_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=143;
+  MODIFY `m_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=145;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `member_coupon`
 --
 ALTER TABLE `member_coupon`
-  MODIFY `sid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `sid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `share_pic`
