@@ -31,16 +31,22 @@ router.use(express.json());
 
 //CRUD
 //將商品加入購物車
-router.post('/order/add', async(req,res)=>{
+router.post('/order/item/add', async(req,res)=>{
     const userId = await req.params.userId;
 
     console.log(userId);
     //判斷有沒有商品
-    const output = {
-        success : false,
-        error : ''
-    }
-    if(!req.body.room_id || !req.body.quantity){
+    // const output = {
+    //     success : false,
+    //     error : ''
+    // }
+    let output ={
+        success: false,
+        error:'',
+        insertId: 0,
+    };
+    
+    if(!req.body.orderItems.room_id > 1){
         output.error = '參數不足'
         return  res.json(output);
     }
@@ -49,31 +55,45 @@ router.post('/order/add', async(req,res)=>{
         output.error = '數量不能小於1';
         return  res.json(output);
     }
-    //  判斷該商品是否加入購物車
-    const sql3 = `SELECT COUNT(1) num FROM carts WHERE room_id=? AND user_id=?`;
-    const [[{num}]] = await db.query(sql3, [req.body.room_id, fake_User]);
+     //判斷該商品是否加入購物車
+    const sql3 = `SELECT COUNT(1) num FROM room_reservation WHERE room_id=?`;
+    const [[{num}]] = await db.query(sql3, [req.body.orderItems.room_id]);
     if(num>0){
         output.error = '購物車內已經有這個商品'
         return  res.json(output);
     }
 
-    const sql = `SELECT * FROM room WHERE sid=? `;
-    const [r1] = await db.query(sql, [req.body.room_id]);
-    if(!r1.length){
-        output.error = '沒有此房型'
-        return  res.json(output);
+    // const sql = `SELECT * FROM room WHERE sid=? `;
+    // const [r1] = await db.query(sql, [req.body.room_id]);
+    // if(!r1.length){
+    //     output.error = '沒有此房型'
+    //     return  res.json(output);
+    // }
+
+    // `member_id`, `room_id`, `room_type_id`, `num_adults`, `num_children`, `Booking_Date`, `price`, `start_date`, `end_date`
+    // for (let item of req.body.orderItems){
+    //     const sql1 = "INSERT INTO `order_pitems` SET ?";
+    //     const [results] = await db.query(sql1, [item]);
+    //     console.log(req.body)
+    // }
+
+    // const sql2 = "INSERT INTO `room_reservation`(`member_id`, `room_id`, `room_type_id`, `num_adults`, `num_children`, `Booking_Date`, `price`, `start_date`, `end_date`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+    // const [r2] = await db.query(sql2,[req.body.orderItems.member, req.body.orderItems.room_id, req.body.orderItems.roomType, req.body.orderItems.adults, req.body.orderItems.children, req.body.orderItems.bd, req.body.orderItems.price, req.body.orderItems.sd, req.body.orderItems.ed]);
+
+    for (let item of req.body.orderItems){
+        const sql2 = "INSERT INTO `room_reservation` SET ?";
+        const [r2] = await db.query(sql2, [item]);
+        console.log(req.body)
     }
 
-    const sql2 = "INSERT INTO `carts`(`user_id`, `room_id`, `quantity`) VALUES (?, ?, ?)";
-    //假設用戶編號為 FakeUser
-    const [r2] = await db.query(sql2,[fake_User, req.body.room_id, req.body.quantity]);
-
-    if(r2.affectedRows){
-        output.success = true;
-    }
-
-    output.cart = await getUserCart(fake_User);
+    output = {...output, body: req.body.orderInfo};
     res.json(output);
+
+    // if(r2.affectedRows){
+    //     output.success = true;
+    // }
+    // res.json(output);
 });
 
 //寫入信用卡資訊
@@ -95,7 +115,6 @@ router.post('/order/card/add', async(req,res)=>{
     if(r3.affectedRows){
         output.success = true;
     }
-
     res.json(output); 
 });
     
