@@ -33,7 +33,7 @@ function sendEmail(email) {
         port: 465,
         auth: {
             user: "shinderr0125@gmail.com",
-            pass: "ltbriuhwuueodavi",
+            pass: "nyhpnhpawstfyicy",
         },
     });
 
@@ -41,7 +41,7 @@ function sendEmail(email) {
         from: "shinderr0125@gmail.com",
         to: email,
         subject: "shuyoung舒營 重設密碼認證信",
-        html: `<h1>舒營 重設密碼</h1><p>重設密碼連結：</p><a href="http://localhost:3777/shuyoung/join/resetPassword">點我</a>`,
+        html: `<h1>舒營 重設密碼</h1><p>重設密碼連結：</p><a href="http://localhost:3777/shuyoung/join/resetPassword?email=${email}">點我</a>`,
     };
 
     mail.sendMail(mailOptions, function (error, info) {

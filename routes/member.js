@@ -263,7 +263,10 @@ router.delete("/favlist", async (req, res, next) => {
 
 router.get("/favlist/:userId", async (req, res, next) => {
     const userId = await req.params.userId;
-
+    let output = {
+        room:"",
+        act:"",
+    }
     console.log(userId);
 
     if (!userId) {
@@ -271,13 +274,22 @@ router.get("/favlist/:userId", async (req, res, next) => {
     }
 
     const sql =
-        "SELECT `favlist_id`, aa.`m_id`, `fav_list_type`, `fav_list_kind`, bb.`room_name` , `sid`,`room_image` ,dd.`favlist_type_id` , EE.room_folder FROM `favlist` AS aa ,`room` AS bb,`memberdata`AS cc ,`favlist_type` AS dd, `room_type` AS EE WHERE aa.m_id = cc.m_id AND aa.fav_list_type= dd.favlist_type_id AND aa.fav_list_kind = bb.sid AND EE.R_id = bb.room_type_id AND cc.m_id =?";
+        "SELECT `favlist_id`, aa.`m_id`, `fav_list_type`, `fav_list_kind`, bb.`room_name` ,`description` , `sid`,`room_image` ,dd.`favlist_type_id` , EE.room_folder FROM `favlist` AS aa ,`room` AS bb,`memberdata`AS cc ,`favlist_type` AS dd, `room_type` AS EE WHERE aa.m_id = cc.m_id AND aa.fav_list_type= 1 AND dd.favlist_type_id =1 AND aa.fav_list_kind = bb.sid AND EE.R_id = bb.room_type_id AND cc.m_id =?";
 
     const [result] = await db.query(sql, [userId]);
 
-    console.log(result);
 
-    res.json(result);
+    const sql2 = "SELECT `favlist_id`, aa.`m_id`, `fav_list_type`, `fav_list_kind`, bb.`act_id`,`act_name` ,`act_desc`, dd.`favlist_type_id` , EE.`act_img_id` , `filename` FROM `favlist` AS aa ,`act` AS bb,`memberdata`AS cc ,`favlist_type` AS dd, `act_img` AS EE WHERE aa.m_id = cc.m_id AND aa.fav_list_type= 2 AND dd.favlist_type_id = 2 AND aa.fav_list_kind = bb.act_id AND EE.act_id = bb.act_id AND cc.m_id =?";
+
+    const [result2] = await db.query(sql2,[userId]);
+
+    console.log(result);
+    console.log(result2);
+    output.room = result;
+    output.act = result2;
+
+    res.json( output);
+    
 });
 
 router.get("/:userId", async (req, res, next) => {
