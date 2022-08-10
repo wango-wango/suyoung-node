@@ -95,7 +95,7 @@ const getRoomHandler = async (req, res) => {
     // 確認是否含有該標籤的sid
     let tag = "";
     if (tagCheck) {
-        tag += `AND rtr.tag_id IN (${tagCheck})`;
+        tag += `AND rtr.tag_id IN (${tagCheck}) `;
     }
 
     const sqlCheckTag = `SELECT r.sid FROM room_tag_room rtr ,room_tag rt ,room r WHERE rtr.tag_id = rt.t_id AND rtr.room_id = r.sid ${tag} GROUP BY r.sid`;
@@ -107,7 +107,7 @@ const getRoomHandler = async (req, res) => {
     //查詢訂單
     let date = "";
     if (startDate && endDate) {
-        date += `AND end_date BETWEEN "${startDate}" AND "${endDate}"`;
+        date += `AND end_date BETWEEN "${startDate}" AND "${endDate}" `;
     }
     // 查詢訂單含有該日期的sid
     const sqlReservationCount = `SELECT room_id FROM room_reservation WHERE 1 ${date}`;
@@ -196,7 +196,7 @@ router.post("/addKeep", async (req, res) => {
             favType,
             roomSid,
         ]);
-        console.log(add);
+        // console.log(add);
     }
 });
 
