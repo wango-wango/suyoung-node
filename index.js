@@ -46,6 +46,7 @@ app.use("/SuMap", require(__dirname + "/routes/SuMap"));
 app.use("/Cart", require(__dirname + "/routes/Cart"));
 app.use("/recipes", require(__dirname + "/routes/recipes"));
 app.use("/act", require(__dirname + "/routes/act"));
+app.use("/home", require(__dirname + "/routes/home"));
 
 app.use((req, res) => {
     res.send(`<h2>找不到頁面 404</h2>`);
