@@ -155,5 +155,25 @@ router.get('/:orderId', async (req, res)=>{
     res.json(p);
 });
 
+//取得Coupn
+router.get('/coupn', async (req, res)=>{
+    const coupnId = await req.params.coupnId;
+
+    let output ={
+        success: false,
+        error:'',
+        insertId: 0,
+    };
+
+    console.log(coupnId);
+
+    const coupnsql = "SELECT * FROM `coupon` WHERE `discount_number` = '?'";
+
+    const [r4] = await db.query( coupnsql, [coupnId]);
+
+
+    res.send(output); 
+});
+
 // router 一定要回傳module
 module.exports = router;

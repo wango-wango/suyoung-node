@@ -1,5 +1,7 @@
 // 連結到資料庫
 const db = require(__dirname + "../../modules/mysql-connect");
+const { toDateString, toDatetimeString } = require(__dirname +
+    "../../modules/date-tools");
 
 
 class OrderList {
@@ -31,6 +33,10 @@ class OrderList {
         // let sql = 'SELECT * FROM `order_pitems` INNER JOIN `orders_p` ON `order_pitems`.`orderId` =  `orders_p`.`orderId` WHERE `order_pitems`.`orderId`=?';
         let sql = 'SELECT * FROM `order_detail` WHERE `order_id`=?';
         let [r] = await db.query(sql, [orderId]);
+        for (let i = 0; i < r.length; i++) {
+            r[i].start_date = toDateString(r[i].start_date);
+            r[i].end_date = toDateString(r[i].end_date);
+        }
         if(!r || !r.length){
             return null;
         }
