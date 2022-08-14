@@ -8,13 +8,25 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const nodeamiler = require("nodemailer");
 const bcrypt = require("bcryptjs");
+const randtoken = require("rand-token");
 const jwt = require("jsonwebtoken");
 const SqlString = require("sqlstring");
 const nodemailer = require("nodemailer");
+const { OAuth2Client } = require("google-auth-library");
+
 // const sendMail = require(__dirname + "/./config/nodemailer");
 
 const { toDateString, toDatetimeString } = require(__dirname +
     "../../modules/date-tools");
+
+const keys = require(__dirname +
+    "/../auth/client_secret_816815070284-20gtk8bv986g0fqpns5uh94i1m2ahp2k.apps.googleusercontent.com.json");
+
+const oAuth2c = new OAuth2Client(
+    keys.web.client_id,
+    keys.web.client_secret,
+    keys.web.redirect_uris[0]
+);
 
 //extended： 使用 qs 進行解析，若為 false，則採用 querystring 進行解析，預設為 true
 router.use(bodyParser.urlencoded({ extended: false }));
@@ -25,15 +37,16 @@ router.use(express.json());
 
 //=================nodeamiler
 //send email
-function sendEmail(email) {
+function sendEmail(email, token) {
     var email = email;
+    var token = token;
 
     var mail = nodemailer.createTransport({
         host: "smtp.gmail.com",
         port: 465,
         auth: {
             user: "shinderr0125@gmail.com",
-            pass: "nyhpnhpawstfyicy",
+            pass: "lrkpyajfvjuulwzb",
         },
     });
 
@@ -41,7 +54,7 @@ function sendEmail(email) {
         from: "shinderr0125@gmail.com",
         to: email,
         subject: "shuyoung舒營 重設密碼認證信",
-        html: `<h1>舒營 重設密碼</h1><p>重設密碼連結：</p><a href="http://localhost:3777/shuyoung/join/resetPassword?email=${email}">點我</a>`,
+        html: `<h1>舒營 重設密碼</h1><p>重設密碼連結：</p><a href="http://localhost:3777/shuyoung/join/resetPassword?token=${token}">點我</a>`,
     };
 
     mail.sendMail(mailOptions, function (error, info) {
@@ -106,6 +119,51 @@ router.post("/login", async (req, res) => {
     res.json(output);
 });
 
+router.get("/googleLogin", async (req, res, next) => {
+    const googleId = req.query.id;
+
+    const token = req.query.token;
+
+    if (!googleId) {
+        res.json({
+            success: false,
+            code: "400",
+            message: "查無googleId",
+        });
+    } else {
+        try {
+            const sql = "SELECT * FROM `memberdata` WHERE `m_google_id`=?";
+
+            const [result] = await db.query(sql, [googleId]);
+
+            console.log("查訊結果:", result);
+
+            if (!result.length) {
+                res.json({
+                    success: false,
+                    code: "401",
+                    message: "查無使用者資料",
+                });
+            } else {
+                const row = result[0];
+
+                res.json({
+                    success: true,
+                    code: "200",
+                    message: "登入成功",
+                    token: token,
+                    ...row,
+                });
+            }
+        } catch (err) {
+            res.json({
+                code: "500",
+                error: err,
+            });
+        }
+    }
+});
+
 router.post("/register", async (req, res) => {
     const { account, password, email } = req.body;
 
@@ -147,33 +205,137 @@ router.post("/reset-password-email", async (req, res, next) => {
             code: "400",
         });
     } else {
-        res.json({
-            success: true,
-            message: "驗證成功，正在寄送電子郵件...",
-            code: "200",
-        });
+        var token = randtoken.generate(20);
 
-        var sent = sendEmail(email);
+        var sent = sendEmail(email, token);
 
         if (sent != "0") {
-            console.log("信件已成功寄出");
+            var data = {
+                hash_code: token,
+            };
+
+            const sql2 =
+                'UPDATE `memberdata` SET ? WHERE m_email = "' + email + '"';
+            [result2] = await db.query(sql2, [data]);
+
+            console.log(result2);
+
+            res.json({
+                success: true,
+                message: "驗證成功，正在寄送電子郵件...",
+                code: "200",
+            });
+        } else {
+            res.json({
+                success: false,
+                message: "發生錯誤，請再嘗試一遍",
+                code: "400",
+            });
         }
     }
 });
 
-router.put("/reset-password/:userId", async (req, res, next) => {
-    const userId = req.params.userId;
-    const password = req.body.password;
+router.get("/api/v1/auth/google", async (req, res, next) => {
+    const authorizeUrl = oAuth2c.generateAuthUrl({
+        // access_type: "offline",
+        // 欲取得 email, 要兩個 scopes
+        scope: [
+            "https://www.googleapis.com/auth/userinfo.profile",
+            "https://www.googleapis.com/auth/userinfo.email",
+        ],
+    });
 
-    if (!userId) {
-        return res.json({ message: "didn't get userId", code: "400" });
+    return res.json(authorizeUrl);
+});
+
+router.get("/api/v1/auth/google/sign", async (req, res, next) => {
+    const qs = req.query;
+
+    let myData = {};
+
+    if (qs.code) {
+        // 內容參考 /references/from-code-to-tokens.json
+        const r = await oAuth2c.getToken(qs.code);
+        // console.log(JSON.stringify(r));
+        oAuth2c.setCredentials(r.tokens);
+
+        // 連線回應內容參考 /references/tokeninfo-results-oauth2.googleapis.com.json
+        // console.log(
+        //     `https://oauth2.googleapis.com/tokeninfo?id_token=${r.tokens.id_token}`
+        // );
+
+        const url =
+            "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,photos";
+
+        const response = await oAuth2c.request({ url });
+        // response 內容參考 /references/people-api-response.json
+        myData = response.data;
+
+        const familyName = myData.names[0].familyName; //姓
+        const givenName = myData.names[0].givenName; //名
+        const userName = myData.names[0].displayName; //名
+        const googleId = myData.names[0].metadata.source.id;
+        const avatar = myData.photos[0].url;
+        const emailAddr = myData.emailAddresses[0].value;
+
+        const checkSql =
+            "SELECT * FROM `memberdata` WHERE `m_google_id` =? AND `m_email` = ?";
+
+        const [checkResult] = await db.query(checkSql, [googleId, emailAddr]);
+
+        if (checkResult.length !== 0) {
+            console.log("此用戶已經存在");
+
+            const token = jwt.sign(
+                {
+                    gId: googleId,
+                },
+                process.env.JWT_SECRET
+            );
+
+            res.redirect(
+                `http://localhost:3777/shuyoung/member/?token=${token}&id=${googleId}`
+            );
+        } else {
+            const sql =
+                "INSERT INTO `memberdata`(`m_last_name`, `m_first_name`, `m_username`, `m_email`,`m_avatar`,  `m_google_id`, `create_at`) VALUES (?,?,?,?,?,?,NOW())";
+
+            const [result] = await db.query(sql, [
+                familyName,
+                givenName,
+                userName,
+                emailAddr,
+                avatar,
+                googleId,
+            ]);
+
+            console.log(result);
+
+            const token = jwt.sign(
+                {
+                    gId: googleId,
+                },
+                process.env.JWT_SECRET
+            );
+
+            res.redirect(
+                `http://localhost:3777/shuyoung/member/?token=${token}&id=${googleId}`
+            );
+        }
     }
+});
 
-    const newSql = "UPDATE `memberdata` SET  `m_passwd`=? WHERE `m_id`=?";
+router.put("/reset-password", async (req, res, next) => {
+    const newpassword = req.body.password;
+    const email = req.query.email;
 
-    const hashPw = await bcrypt.hash(password, 10);
+    console.log(email, newpassword);
 
-    const [newResult] = await db.query(newSql, [hashPw, userId]);
+    const newSql = "UPDATE `memberdata` SET  `m_passwd`=? WHERE `m_email`=?";
+
+    const hashPw = await bcrypt.hash(newpassword, 10);
+
+    const [newResult] = await db.query(newSql, [hashPw, email]);
 
     console.log(newResult);
 

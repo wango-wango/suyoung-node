@@ -12,7 +12,7 @@ const fileUpload = require("express-fileupload");
 const { toDateString, toDatetimeString } = require(__dirname +
     "/modules/date-tools.js");
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
