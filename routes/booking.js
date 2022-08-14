@@ -83,7 +83,7 @@ const getRoomHandler = async (req, res) => {
     // 大魔王
     const {
         adults,
-        startDate,
+        nextDate,
         endDate,
         roomType,
         startPrice,
@@ -116,29 +116,38 @@ const getRoomHandler = async (req, res) => {
 
     //查詢訂單
     let date = "";
-    if (startDate && endDate) {
-        date += `AND end_date BETWEEN "${startDate}" AND "${endDate}" `;
+    if (nextDate && endDate) {
+        date += `AND (end_date BETWEEN "${nextDate}" AND "${endDate}") OR (start_date BETWEEN "${nextDate}" AND "${endDate}") OR (("${nextDate}" BETWEEN start_date AND end_date)AND("${endDate}" BETWEEN start_date AND end_date)) GROUP BY room_id`;
     }
     // 查詢訂單含有該日期的sid
     const sqlReservationCount = `SELECT room_id FROM room_reservation WHERE 1 ${date}`;
     const [reservationCount] = await db.query(sqlReservationCount);
+    
 
     const sqlTemporaryCount = `SELECT room_id FROM temporaryCart WHERE 1 ${date}`;
-    const [temporaryCount] = await db.query(sqlReservationCount);
+    const [temporaryCount] = await db.query(sqlTemporaryCount);
+    // const [[{room_id:test}]] = await db.query(sqlTemporaryCount);
 
-    // 取得sid 後 告訴 roomList 不能包含那些房間
+    // 取得sid 後 轉成陣列 告訴 roomList 不能包含那些房間
     const reCount = reservationCount.map((v) => v.room_id);
     const teCount = temporaryCount.map((v)=> v.room_id);
     // 合併兩個陣列的值
     const newCount = [...reCount,...teCount];
 
+    
     // 把重複的篩選掉
     const finalCount = newCount.filter(function(ele , pos){
         return newCount.indexOf(ele) == pos;
     }) 
+    console.log(date);
+    // console.log(reservationCount);
+    // console.log(temporaryCount);
     
-
-    if (startDate && endDate) {
+    // console.log(reCount);
+    // console.log(teCount);
+    // console.log(newCount);
+    console.log(finalCount);
+    if (nextDate && endDate) {
         if (finalCount && finalCount.length) {
             where += `AND r.sid NOT IN (${finalCount}) `;
         }
@@ -163,6 +172,7 @@ const getRoomHandler = async (req, res) => {
     // 最後送出的 sql
     const sqlVecna = `SELECT * FROM room r JOIN room_type rt ON r.room_type_id = rt.R_id ${where}`;
     const [vecna] = await db.query(sqlVecna);
+    console.log(sqlVecna);
 
     output.roomList = vecna;
 
@@ -227,7 +237,7 @@ router.post("/temporaryCart", async (req, res) => {
         roomSid,
         adults,
         kids,
-        startDate,
+        nextDate,
         endDate,
         perNight,
         totalPrice,
@@ -247,7 +257,7 @@ router.post("/temporaryCart", async (req, res) => {
         kids,
         perNight,
         totalPrice,
-        startDate,
+        nextDate,
         endDate,
     ]);
     console.log(temporaryCart);
