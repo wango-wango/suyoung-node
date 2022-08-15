@@ -24,6 +24,15 @@ const getRoomHandler = async (req, res) => {
         ruleList: [],
     };
     let personNum = req.query.personNum || "";
+
+    if (personNum >= 2 && personNum < 4) {
+        personNum = 2;
+    } else if (personNum >= 4 && personNum < 6) {
+        personNum = 4;
+    } else if (personNum >= 6 && personNum < 8) {
+        personNum = 6;
+    }
+
     let roomSid = req.query.roomSid || "";
 
     let where = "";
@@ -36,6 +45,7 @@ const getRoomHandler = async (req, res) => {
     if (roomSid) whereNot += `WHERE r.sid NOT IN (${roomSid})`;
 
     let wherePerson = "";
+
     if (personNum) wherePerson += `AND r.person_num = ${personNum}`;
 
     let whereRule = "";
@@ -73,7 +83,7 @@ const getRoomHandler = async (req, res) => {
     // 大魔王
     const {
         adults,
-        startDate,
+        nextDate,
         endDate,
         roomType,
         startPrice,
@@ -106,18 +116,40 @@ const getRoomHandler = async (req, res) => {
 
     //查詢訂單
     let date = "";
-    if (startDate && endDate) {
-        date += `AND end_date BETWEEN "${startDate}" AND "${endDate}" `;
+    if (nextDate && endDate) {
+        date += `AND (end_date BETWEEN "${nextDate}" AND "${endDate}") OR (start_date BETWEEN "${nextDate}" AND "${endDate}") OR (("${nextDate}" BETWEEN start_date AND end_date)AND("${endDate}" BETWEEN start_date AND end_date)) GROUP BY room_id`;
     }
     // 查詢訂單含有該日期的sid
     const sqlReservationCount = `SELECT room_id FROM room_reservation WHERE 1 ${date}`;
     const [reservationCount] = await db.query(sqlReservationCount);
+    
 
-    // 取得sid 後 告訴 roomList 不能包含那些房間
+    const sqlTemporaryCount = `SELECT room_id FROM temporaryCart WHERE 1 ${date}`;
+    const [temporaryCount] = await db.query(sqlTemporaryCount);
+    // const [[{room_id:test}]] = await db.query(sqlTemporaryCount);
+
+    // 取得sid 後 轉成陣列 告訴 roomList 不能包含那些房間
     const reCount = reservationCount.map((v) => v.room_id);
-    if (startDate && endDate) {
-        if (reCount && reCount.length) {
-            where += `AND r.sid NOT IN (${reCount}) `;
+    const teCount = temporaryCount.map((v)=> v.room_id);
+    // 合併兩個陣列的值
+    const newCount = [...reCount,...teCount];
+
+    
+    // 把重複的篩選掉
+    const finalCount = newCount.filter(function(ele , pos){
+        return newCount.indexOf(ele) == pos;
+    }) 
+    console.log(date);
+    // console.log(reservationCount);
+    // console.log(temporaryCount);
+    
+    // console.log(reCount);
+    // console.log(teCount);
+    // console.log(newCount);
+    console.log(finalCount);
+    if (nextDate && endDate) {
+        if (finalCount && finalCount.length) {
+            where += `AND r.sid NOT IN (${finalCount}) `;
         }
     }
 
@@ -135,11 +167,12 @@ const getRoomHandler = async (req, res) => {
     ON r.sid=rr.room_id
     ORDER BY rr.num DESC `;
 
-    console.log(where);
+    // console.log(where);
 
     // 最後送出的 sql
     const sqlVecna = `SELECT * FROM room r JOIN room_type rt ON r.room_type_id = rt.R_id ${where}`;
     const [vecna] = await db.query(sqlVecna);
+    console.log(sqlVecna);
 
     output.roomList = vecna;
 
@@ -199,6 +232,36 @@ router.post("/addKeep", async (req, res) => {
         // console.log(add);
     }
 });
+router.post("/temporaryCart", async (req, res) => {
+    const {
+        roomSid,
+        adults,
+        kids,
+        nextDate,
+        endDate,
+        perNight,
+        totalPrice,
+        room_type_id,
+        memberId,
+    } = req.body;
+    console.log(req.body);
+
+    const sqlInsertMemberRoom =
+        "INSERT INTO `temporaryCart`( `member_id`, `room_id`, `room_type_id`, `num_adults`, `num_children`, `perNight`, `total_price`, `start_date`, `end_date`) VALUES (?,?,?,?,?,?,?,?,?)";
+
+    const [temporaryCart] = await db.query(sqlInsertMemberRoom, [
+        memberId,
+        roomSid,
+        room_type_id,
+        adults,
+        kids,
+        perNight,
+        totalPrice,
+        nextDate,
+        endDate,
+    ]);
+    console.log(temporaryCart);
+});
 
 //delete
 router.delete("/deleteKeep", async (req, res) => {
@@ -219,6 +282,7 @@ router.delete("/deleteKeep", async (req, res) => {
     );
     res.send(result);
 });
+
 //update
 // router.put("/update:roomSid/:roomTypeId", async (req, res) => {
 //     const RoomSid = req.params.roomSid;

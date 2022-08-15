@@ -87,6 +87,7 @@ router.post("/upload-avatar/:userId", async (req, res) => {
 
 router.get("/coupon/:userId", async (req, res, next) => {
     const userId = req.params.userId;
+    console.log(userId);
 
     if (!userId) {
         return res.json({ message: "didn't get userId", code: "400" });
@@ -99,8 +100,6 @@ router.get("/coupon/:userId", async (req, res, next) => {
         result[i].start_date = toDateString(result[i].start_date);
         result[i].expire_date = toDateString(result[i].expire_date);
     }
-
-    console.log(result);
 
     if (!result.length) {
         return res.json({
@@ -206,40 +205,39 @@ router.put("/:userId", async (req, res, next) => {
     if (!userId) {
         return res.json({ message: "didn't get userId", code: "400" });
     }
-
     const user = req.body;
-
-    // console.log(user);
 
     if (!user.phone || !user.email) {
         return res.json({ message: "fail", code: "400" });
     }
 
-    const sql =
-        "UPDATE `memberdata` SET `m_first_name`=?,`m_last_name`=?,`m_birthday`=?,`m_email`=?,`m_phone`=?,`m_city`=?,`m_area`=?,`m_addr`=? WHERE m_id=?";
+    try {
+        const sql =
+            "UPDATE `memberdata` SET `m_first_name`=?,`m_last_name`=?,`m_birthday`=?,`m_email`=?,`m_phone`=?,`m_city`=?,`m_area`=?,`m_addr`=? WHERE m_id=?";
 
-    const [result] = await db.query(sql, [
-        user.firstname,
-        user.lastname,
-        user.birthday,
-        user.email,
-        user.phone,
-        user.county,
-        user.area,
-        user.address,
-        user.m_id,
-    ]);
+        const [result] = await db.query(sql, [
+            user.firstname,
+            user.lastname,
+            user.birthday,
+            user.email,
+            user.phone,
+            user.county,
+            user.area,
+            user.address,
+            userId,
+        ]);
 
-    console.log(result);
+        console.log(result);
 
-    if (result.affectedRows) {
-        return res.json({
-            message: "success",
-            code: "200",
-            user: { ...user, id: userId },
-        });
-    } else {
-        return res.json({ message: "fail123", code: "400" });
+        if (result.affectedRows) {
+            return res.json({
+                message: "success",
+                code: "200",
+                user: { ...user, id: userId },
+            });
+        }
+    } catch (error) {
+        return res.json({ message: error, code: "400" });
     }
 });
 
@@ -263,7 +261,10 @@ router.delete("/favlist", async (req, res, next) => {
 
 router.get("/favlist/:userId", async (req, res, next) => {
     const userId = await req.params.userId;
-
+    let output = {
+        room: "",
+        act: "",
+    };
     console.log(userId);
 
     if (!userId) {
@@ -271,13 +272,55 @@ router.get("/favlist/:userId", async (req, res, next) => {
     }
 
     const sql =
-        "SELECT `favlist_id`, aa.`m_id`, `fav_list_type`, `fav_list_kind`, bb.`room_name` , `sid`,`room_image` ,dd.`favlist_type_id` , EE.room_folder FROM `favlist` AS aa ,`room` AS bb,`memberdata`AS cc ,`favlist_type` AS dd, `room_type` AS EE WHERE aa.m_id = cc.m_id AND aa.fav_list_type= dd.favlist_type_id AND aa.fav_list_kind = bb.sid AND EE.R_id = bb.room_type_id AND cc.m_id =?";
+        "SELECT `favlist_id`, aa.`m_id`, `fav_list_type`, `fav_list_kind`, bb.`room_name` ,`description` , `sid`,`room_image` ,dd.`favlist_type_id` , EE.room_folder FROM `favlist` AS aa ,`room` AS bb,`memberdata`AS cc ,`favlist_type` AS dd, `room_type` AS EE WHERE aa.m_id = cc.m_id AND aa.fav_list_type= 1 AND dd.favlist_type_id =1 AND aa.fav_list_kind = bb.sid AND EE.R_id = bb.room_type_id AND cc.m_id =?";
 
     const [result] = await db.query(sql, [userId]);
 
+    const sql2 =
+        "SELECT `favlist_id`, aa.`m_id`, `fav_list_type`, `fav_list_kind`, bb.`act_id`,`act_name` ,`act_desc`, dd.`favlist_type_id` , EE.`act_img_id` , `filename` FROM `favlist` AS aa ,`act` AS bb,`memberdata`AS cc ,`favlist_type` AS dd, `act_img` AS EE WHERE aa.m_id = cc.m_id AND aa.fav_list_type= 2 AND dd.favlist_type_id = 2 AND aa.fav_list_kind = bb.act_id AND EE.act_id = bb.act_id AND cc.m_id =? GROUP BY aa.favlist_id";
+
+    const [result2] = await db.query(sql2, [userId]);
+
+    console.log(result);
+    console.log(result2);
+    output.room = result;
+    output.act = result2;
+
+    res.json(output);
+});
+
+router.get("/getOrderList/:userId", async (req, res, next) => {
+    const userId = await req.params.userId;
+
+    if (!userId) {
+        return res.json({ message: "此用戶不存在", code: "400" });
+    }
+
+    const sql =
+        "SELECT m.m_id,od.* FROM  order_detail od JOIN memberdata m ON m.m_id = od.member_id WHERE member_id = ?";
+
+    const [result] = await db.query(sql, [userId]);
+
+    for (let i = 0; i < result.length; i++) {
+        result[i].start_date = toDateString(result[i].start_date).split("-");
+        result[i].end_date = toDateString(result[i].end_date).split("-");
+    }
+
     console.log(result);
 
-    res.json(result);
+    if (result.length) {
+        return res.json({
+            message: "success",
+            code: "200",
+            result,
+        });
+    } else {
+        return res.json({
+            message: "no result",
+            code: "400",
+            result,
+        });
+    }
 });
 
 router.get("/:userId", async (req, res, next) => {
