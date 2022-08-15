@@ -85,6 +85,92 @@ router.post("/upload-avatar/:userId", async (req, res) => {
     }
 });
 
+router.get("/creditcard", async (req, res, next) => {
+    const { memberId } = req.query;
+
+    console.log(memberId);
+
+    if (!memberId) {
+        res.json({
+            success: false,
+            code: "401",
+            message: "no memberID",
+        });
+    }
+
+    const sql = "SELECT * FROM `credit_card` WHERE m_id = ?";
+
+    const [result] = await db.query(sql, [memberId]);
+
+    for (let i = 0; i < result.length; i++) {
+        result[i].card_number = result[i].card_number.split(" ");
+    }
+
+    console.log("creditcard", result);
+
+    if (!result.length) {
+        res.json({
+            success: false,
+            code: "402",
+            message: "no data",
+        });
+    } else {
+        res.json({
+            success: true,
+            code: "200",
+            message: "success",
+            result,
+        });
+    }
+});
+
+router.delete("/creditcard", async (req, res, next) => {
+    const { memberId, cardSid } = req.query;
+
+    console.log(memberId);
+
+    if (!memberId) {
+        res.json({
+            success: false,
+            code: "401",
+            message: "no memberID",
+        });
+    }
+
+    const sql = "DELETE FROM `credit_card` WHERE m_id = ? AND card_id = ?";
+
+    const [result] = await db.query(sql, [memberId, cardSid]);
+
+    console.log(result);
+
+    if (!result.length) {
+        res.json({
+            success: false,
+            code: "402",
+            message: "no data",
+        });
+    } else {
+        res.json({
+            success: true,
+            code: "200",
+            message: "success",
+            result,
+        });
+    }
+});
+
+router.get("/act/favlist", async (req, res) => {
+    const { memberId, actSid } = req.query;
+    const sqlFavlist = `SELECT * FROM favlist WHERE m_id = ? AND fav_list_type = 2 AND fav_list_kind= ?`;
+    const [resultFav] = await db.query(sqlFavlist, [memberId, actSid]);
+    console.log("get:", resultFav);
+    res.json({
+        success: true,
+        code: 200,
+        resultFav,
+    });
+});
+
 router.get("/coupon/:userId", async (req, res, next) => {
     const userId = req.params.userId;
     console.log(userId);
@@ -256,7 +342,7 @@ router.delete("/favlist", async (req, res, next) => {
         res.json({ message: "沒有資料被刪掉", code: "404" });
     }
 
-    // res.json(result);
+    res.json(result);
 });
 
 router.get("/favlist/:userId", async (req, res, next) => {
@@ -289,17 +375,73 @@ router.get("/favlist/:userId", async (req, res, next) => {
     res.json(output);
 });
 
+router.post("/favlist/act", async (req, res, next) => {
+    console.log(req.body);
+
+    const { favlistId, memberId, favType } = req.body;
+
+    // 判斷是否已新增
+    const sqlCountMemberAct =
+        "SELECT COUNT(1) total FROM `favlist` f WHERE f.m_id = ? AND f.fav_list_kind = ?";
+    const [[{ total }]] = await db.query(sqlCountMemberAct, [
+        memberId,
+        favlistId,
+    ]);
+
+    // 如果資料內沒有才加入
+    if (!total) {
+        const sqlInsertMemberAct =
+            "INSERT INTO `favlist`(`m_id`, `fav_list_type`, `fav_list_kind`) VALUES (?,?,?)";
+
+        const [add] = await db.query(sqlInsertMemberAct, [
+            memberId,
+            favType,
+            favlistId,
+        ]);
+        console.log("add:", add);
+        res.send(add);
+    }
+});
+
+router.delete("/favlist/act/delete", async (req, res, next) => {
+    const { memberId, favlistId } = req.query;
+
+    const sql = "DELETE FROM `favlist` WHERE `m_id`=? AND`fav_list_kind`=?";
+
+    const [result] = await db.query(sql, [memberId, favlistId]);
+
+    console.log("delete:", result);
+    res.send(result);
+});
+
 router.get("/getOrderList/:userId", async (req, res, next) => {
     const userId = await req.params.userId;
+
+    //2022-08-11 00:00:00
+
+    const { month } = req.query;
+
+    let value = "";
+
+    if (month === "一個月內") {
+        value = 1;
+        console.log(value);
+    } else if (month === "三個月內") {
+        value = 3;
+        console.log(value);
+    } else if (month === "六個月內") {
+        value = 6;
+        console.log(value);
+    }
 
     if (!userId) {
         return res.json({ message: "此用戶不存在", code: "400" });
     }
 
     const sql =
-        "SELECT m.m_id,od.* FROM  order_detail od JOIN memberdata m ON m.m_id = od.member_id WHERE member_id = ?";
+        "SELECT m.m_id,od.* FROM  order_detail od JOIN memberdata m ON m.m_id = od.member_id WHERE member_id = ? AND  TIMESTAMPDIFF(MONTH, od.create_at, CURRENT_DATE) <= ? ";
 
-    const [result] = await db.query(sql, [userId]);
+    const [result] = await db.query(sql, [userId, value]);
 
     for (let i = 0; i < result.length; i++) {
         result[i].start_date = toDateString(result[i].start_date).split("-");

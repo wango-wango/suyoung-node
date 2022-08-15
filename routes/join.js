@@ -185,6 +185,17 @@ router.post("/register", async (req, res) => {
         const sql =
             "INSERT INTO `memberdata`( `m_username`, `m_passwd`, `m_email`,  `create_at`) VALUES (?,?,?,NOW())";
         const [result] = await db.query(sql, [account, hashPw, email]);
+
+        const checkIdSql =
+            "SELECT m_id FROM `memberdata` ORDER BY m_id DESC LIMIT 1";
+        const [[lastId]] = await db.query(checkIdSql);
+
+        const id = lastId.m_id;
+
+        const couponSql =
+            "INSERT INTO `member_coupon`( `m_id`, `coupon_id`, `coupon_status`) VALUES (?,5,0)";
+        const [couponResult] = await db.query(couponSql, [id]);
+
         res.json(result);
     }
 });
@@ -311,6 +322,18 @@ router.get("/api/v1/auth/google/sign", async (req, res, next) => {
 
             console.log(result);
 
+            const checkIdSql =
+                "SELECT m_id FROM `memberdata` ORDER BY m_id DESC LIMIT 1";
+            const [[lastId]] = await db.query(checkIdSql);
+
+            const id = lastId.m_id;
+
+            const couponSql =
+                "INSERT INTO `member_coupon`( `m_id`, `coupon_id`, `coupon_status`) VALUES (?,5,0)";
+            const [couponResult] = await db.query(couponSql, [id]);
+
+            console.log(couponResult);
+
             const token = jwt.sign(
                 {
                     gId: googleId,
@@ -326,24 +349,38 @@ router.get("/api/v1/auth/google/sign", async (req, res, next) => {
 });
 
 router.put("/reset-password", async (req, res, next) => {
-    const newpassword = req.body.password;
-    const email = req.query.email;
+    const { newPassword, comfirmPassword } = req.body;
+    const token = req.query.token;
 
-    console.log(email, newpassword);
+    if (newPassword !== comfirmPassword) {
+        res.json({
+            success: false,
+            message: "新密碼與確認密碼不符",
+            code: "402",
+        });
+    }
 
-    const newSql = "UPDATE `memberdata` SET  `m_passwd`=? WHERE `m_email`=?";
+    const newSql = "UPDATE `memberdata` SET  `m_passwd`=? WHERE  `hash_code`=?";
 
-    const hashPw = await bcrypt.hash(newpassword, 10);
+    const hashPw = await bcrypt.hash(newPassword, 10);
 
-    const [newResult] = await db.query(newSql, [hashPw, email]);
+    const [newResult] = await db.query(newSql, [hashPw, token]);
 
     console.log(newResult);
 
-    return res.json({
-        success: true,
-        message: "修改成功",
-        code: "200",
-    });
+    if (newResult.length !== 0) {
+        return res.json({
+            success: true,
+            message: "修改成功",
+            code: "200",
+        });
+    } else {
+        return res.json({
+            success: false,
+            message: "修改失敗",
+            code: "401",
+        });
+    }
 });
 
 // router 一定要回傳module
