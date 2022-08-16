@@ -195,7 +195,7 @@ router.get("/selectTag", async (req, res) => {
 // favlist
 router.get("/favlist", async (req, res) => {
     const { memberId } = req.query;
-    const sqlFavlist = `SELECT favlist.fav_list_kind FROM favlist WHERE m_id = ${memberId}`;
+    const sqlFavlist = `SELECT favlist.fav_list_kind FROM favlist WHERE m_id = ${memberId} AND fav_list_type = 1`;
     const [resultFav] = await db.query(sqlFavlist);
     res.send(resultFav);
 });
