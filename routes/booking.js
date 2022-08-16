@@ -122,7 +122,6 @@ const getRoomHandler = async (req, res) => {
     // 查詢訂單含有該日期的sid
     const sqlReservationCount = `SELECT room_id FROM room_reservation WHERE 1 ${date}`;
     const [reservationCount] = await db.query(sqlReservationCount);
-    
 
     const sqlTemporaryCount = `SELECT room_id FROM temporaryCart WHERE 1 ${date}`;
     const [temporaryCount] = await db.query(sqlTemporaryCount);
@@ -130,19 +129,18 @@ const getRoomHandler = async (req, res) => {
 
     // 取得sid 後 轉成陣列 告訴 roomList 不能包含那些房間
     const reCount = reservationCount.map((v) => v.room_id);
-    const teCount = temporaryCount.map((v)=> v.room_id);
+    const teCount = temporaryCount.map((v) => v.room_id);
     // 合併兩個陣列的值
-    const newCount = [...reCount,...teCount];
+    const newCount = [...reCount, ...teCount];
 
-    
     // 把重複的篩選掉
-    const finalCount = newCount.filter(function(ele , pos){
+    const finalCount = newCount.filter(function (ele, pos) {
         return newCount.indexOf(ele) == pos;
-    }) 
+    });
     console.log(date);
     // console.log(reservationCount);
     // console.log(temporaryCount);
-    
+
     // console.log(reCount);
     // console.log(teCount);
     // console.log(newCount);
