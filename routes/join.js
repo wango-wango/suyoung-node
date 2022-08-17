@@ -146,6 +146,7 @@ router.get("/googleLogin", async (req, res, next) => {
                 });
             } else {
                 const row = result[0];
+                row.create_at = toDateString(row.create_at);
 
                 res.json({
                     success: true,

@@ -113,6 +113,7 @@ router.get("/creditcard", async (req, res, next) => {
             success: false,
             code: "402",
             message: "no data",
+            result,
         });
     } else {
         res.json({
@@ -148,6 +149,7 @@ router.delete("/creditcard", async (req, res, next) => {
             success: false,
             code: "402",
             message: "no data",
+            result,
         });
     } else {
         res.json({
@@ -187,11 +189,14 @@ router.get("/coupon/:userId", async (req, res, next) => {
         result[i].expire_date = toDateString(result[i].expire_date);
     }
 
+    console.log(result[0].expire_date);
+
     if (!result.length) {
         return res.json({
             success: false,
             message: "沒有此用戶資料",
             code: "404",
+            result,
         });
     } else {
         return res.json({
@@ -417,9 +422,9 @@ router.delete("/favlist/act/delete", async (req, res, next) => {
 router.get("/getOrderList/:userId", async (req, res, next) => {
     const userId = await req.params.userId;
 
-    //2022-08-11 00:00:00
-
     const { month } = req.query;
+
+    console.log("month:", month);
 
     let value = "";
 
@@ -431,6 +436,9 @@ router.get("/getOrderList/:userId", async (req, res, next) => {
         console.log(value);
     } else if (month === "六個月內") {
         value = 6;
+        console.log(value);
+    } else {
+        value = 24;
         console.log(value);
     }
 
