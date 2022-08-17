@@ -36,7 +36,11 @@ function sendEmail(email1) {
         from: "shinderr0125@gmail.com",
         to: email1,
         subject: "shuyoung舒營 訂單編號：{order_id}",
-        html: `<h1>感謝預訂</h1>`
+        html: 
+        `<h1>親愛的新德，您好</h1>
+        <p>感謝您</p>
+        `
+
     };
 
     mail.sendMail(mailOptions, function (error, info) {
@@ -50,26 +54,27 @@ function sendEmail(email1) {
 
 //================nodemailer
 
-router.post("/orderDetail-email", async (req, res, next) => {
+// router.post("/orderDetail-email", async (req, res, next) => {
     
-    var email = "shinderr0125@gmail.com";
+//     var email = "shinderr0125@gmail.com";
 
-    var order_id = req.body.order_id;
+//     var order_id = req.body.order_id;
 
-    console.log(email);
+//     console.log("email",order_id);
+    
 
-        res.json({
-            success: true,
-            message: "驗證成功，正在寄送電子郵件...",
-            code: "200",
-        });
+//         res.json({
+//             success: true,
+//             message: "驗證成功，正在寄送電子郵件...",
+//             code: "200",
+//         });
 
-        var sent = sendEmail(email, order_id);
+//         var sent = sendEmail(email, order_id);
 
-        if (sent != "0") {
-            console.log("信件已成功寄出");
-        }
-});
+//         if (sent != "0") {
+//             console.log("信件已成功寄出");
+//         }
+// });
 
 //CRUD
 //將商品加入購物車
@@ -171,6 +176,52 @@ router.post('/orderDetail/add', async(req,res)=>{
         console.log(r3)
         console.log(req.body.orderDetail)
     }
+
+    const emailOrder = req.body.orderDetail[0]
+    const emailActOrder = req.body.orderDetail[1]
+
+    console.log(emailOrder);
+
+    //寄發驗證信
+    var email1 = "shinderr0125@gmail.com"
+    
+    var mail = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        auth: {
+            user: "shinderr0125@gmail.com",
+            pass: "zzukvqfcndhvbcrh",
+        },
+    });
+
+    var mailOptions = {
+        from: "shinderr0125@gmail.com",
+        to: email1,
+        subject: `shuyoung舒營 訂單編號：${emailOrder.order_id}`,
+        html:
+         `
+         <h1>舒營（SHUYOUNG）</h1>
+         <h2>親愛的新德，您好，以下為訂單資訊</h2>
+         <p>訂單編號：${emailOrder.order_id}</p>
+         <p>金額：${emailOrder.total_price}</p>
+         <p>房型：</p>
+         <p>入住房型：${emailOrder.room_name}</p>
+         <p>入住日期：${emailOrder.start_date}</p>
+         <p>天數：${emailOrder.perNight}</p>
+         <p>活動：</p>
+         <p>活動名稱：${emailActOrder.act_name}</p>
+         <p>活動名稱：${emailActOrder.act_people}</p>
+         <p>舒營期待您的到來</p>
+         `
+    };
+
+    mail.sendMail(mailOptions, function (error, info) {
+        if (error) {
+            console.log("flase");
+        } else {
+            console.log("success");
+        }
+    });
 
     output = {...output, body: req.body.orderDetail};
     res.json(output);

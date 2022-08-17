@@ -424,7 +424,7 @@ router.get("/getOrderList/:userId", async (req, res, next) => {
 
     const { month } = req.query;
 
-    console.log("month:", month);
+    // console.log("month:", month);
 
     let value = "";
 
@@ -447,7 +447,7 @@ router.get("/getOrderList/:userId", async (req, res, next) => {
     }
 
     const sql =
-        "SELECT m.m_id,od.* FROM  order_detail od JOIN memberdata m ON m.m_id = od.member_id WHERE member_id = ? AND  TIMESTAMPDIFF(MONTH, od.create_at, CURRENT_DATE) <= ? ";
+        "SELECT m.m_id,od.* FROM  order_detail od JOIN memberdata m ON m.m_id = od.member_id WHERE member_id = ? AND `order_Type` =1 AND  TIMESTAMPDIFF(MONTH, od.create_at, CURRENT_DATE) <= ? ";
 
     const [result] = await db.query(sql, [userId, value]);
 
@@ -456,19 +456,30 @@ router.get("/getOrderList/:userId", async (req, res, next) => {
         result[i].end_date = toDateString(result[i].end_date).split("-");
     }
 
-    console.log(result);
+    const room = [];
+    room.push(...result);
 
-    if (result.length) {
+    const sql2 =
+        "SELECT m.m_id,od.* FROM  order_detail od JOIN memberdata m ON m.m_id = od.member_id WHERE member_id = ? AND order_Type =2 AND TIMESTAMPDIFF(MONTH, od.create_at, CURRENT_DATE) <= ? ";
+
+    const [result2] = await db.query(sql2, [userId, value]);
+
+    const act = [];
+    act.push(...result2);
+
+    if (result.length && result2.length) {
         return res.json({
             message: "success",
             code: "200",
-            result,
+            room,
+            act,
         });
     } else {
         return res.json({
             message: "no result",
             code: "400",
-            result,
+            room,
+            act,
         });
     }
 });
