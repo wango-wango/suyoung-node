@@ -244,7 +244,7 @@ router.post("/temporaryCart", async (req, res) => {
         startDate,
         endDate,
         perNight,
-        totalPrice,
+        roomTotalPrice,
         room_type_id,
         memberId,
     } = req.body;
@@ -260,7 +260,7 @@ router.post("/temporaryCart", async (req, res) => {
         adults,
         kids,
         perNight,
-        totalPrice,
+        roomTotalPrice,
         startDate,
         endDate,
     ]);

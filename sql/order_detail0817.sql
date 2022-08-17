@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： localhost
--- 產生時間： 2022 年 08 月 17 日 04:18
+-- 產生時間： 2022 年 08 月 17 日 10:14
 -- 伺服器版本： 10.4.21-MariaDB
 -- PHP 版本： 7.4.29
 
@@ -31,7 +31,7 @@ CREATE TABLE `order_detail` (
   `sid` int(255) NOT NULL,
   `order_id` varchar(255) NOT NULL,
   `member_id` int(11) NOT NULL,
-  `order_Type` int(11) NOT NULL,
+  `order_Type` int(11) DEFAULT NULL,
   `adults` int(11) DEFAULT NULL,
   `kids` int(11) DEFAULT NULL,
   `room_price` int(11) DEFAULT NULL,
@@ -218,7 +218,53 @@ INSERT INTO `order_detail` (`sid`, `order_id`, `member_id`, `order_Type`, `adult
 (158, '1660700459012', 145, 1, 3, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-19', '2022-08-20', NULL, NULL, NULL, NULL, NULL, NULL, 21000, '2022-08-17 01:40:59'),
 (159, '1660700459012', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 15, '2022-08-19', 18000, 21000, '2022-08-17 01:40:59'),
 (160, '1660701425580', 145, 1, 4, 0, 12800, 1, 1, 'beauty', 'roomA8.jpeg', '頂級星空帳', '1', '2022-09-08', '2022-09-09', NULL, NULL, NULL, NULL, NULL, NULL, 18800, '2022-08-17 01:57:05'),
-(161, '1660701425580', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 5, '2022-08-19', 6000, 18800, '2022-08-17 01:57:05');
+(161, '1660701425580', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 5, '2022-08-19', 6000, 18800, '2022-08-17 01:57:05'),
+(162, '1660712713320', 145, 1, 4, 0, 12800, 1, 1, 'beauty', 'roomA8.jpeg', '頂級星空帳', '1', '2022-08-18', '2022-08-19', NULL, NULL, NULL, NULL, NULL, NULL, 16400, '2022-08-17 05:05:13'),
+(163, '1660712713320', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 3, '2022-09-09', 3600, 16400, '2022-08-17 05:05:13'),
+(164, '1660712777024', 145, 1, 3, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-19', '2022-08-20', NULL, NULL, NULL, NULL, NULL, NULL, 3000, '2022-08-17 05:06:17'),
+(165, '1660712777024', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 3, '2022-09-09', 3600, 3000, '2022-08-17 05:06:17'),
+(166, '1660712957617', 145, 1, 3, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-09-09', '2022-09-10', NULL, NULL, NULL, NULL, NULL, NULL, 3000, '2022-08-17 05:09:17'),
+(167, '1660713163125', 145, 1, 4, 0, 25600, 1, 1, 'beauty', 'roomA8.jpeg', '頂級星空帳', '2', '2022-09-19', '2022-09-21', NULL, NULL, NULL, NULL, NULL, NULL, 25600, '2022-08-17 05:12:43'),
+(168, '1660713369407', 145, 1, 3, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-20', '2022-08-21', NULL, NULL, NULL, NULL, NULL, NULL, 3000, '2022-08-17 05:16:09'),
+(169, '1660714201495', 145, 1, 3, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-19', '2022-08-20', NULL, NULL, NULL, NULL, NULL, NULL, 3000, '2022-08-17 05:30:01'),
+(170, '1660714928826', 145, 1, 3, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-19', '2022-08-20', NULL, NULL, NULL, NULL, NULL, NULL, 9000, '2022-08-17 05:42:08'),
+(171, '1660714928826', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 5, '2022-09-08', 6000, 9000, '2022-08-17 05:42:08'),
+(172, '1660715323087', 145, 1, 3, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-19', '2022-08-20', NULL, NULL, NULL, NULL, NULL, NULL, 3000, '2022-08-17 05:48:43'),
+(173, '1660715323087', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 2, '2022-08-26', 2400, 3000, '2022-08-17 05:48:43'),
+(174, '1660715652745', 145, 1, 2, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-18', '2022-08-19', NULL, NULL, NULL, NULL, NULL, NULL, 3000, '2022-08-17 05:54:12'),
+(175, '1660715766803', 145, 1, 2, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-18', '2022-08-19', NULL, NULL, NULL, NULL, NULL, NULL, 3000, '2022-08-17 05:56:06'),
+(176, '1660715832263', 145, 1, 3, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-19', '2022-08-20', NULL, NULL, NULL, NULL, NULL, NULL, 4200, '2022-08-17 05:57:12'),
+(177, '1660716010381', 145, 1, 4, 0, 4800, 7, 3, 'van', 'campingVan_B1.jpeg', '賞星露營車', '1', '2022-08-18', '2022-08-19', NULL, NULL, NULL, NULL, NULL, NULL, 7200, '2022-08-17 06:00:10'),
+(178, '1660716010381', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 2, '2022-08-18', 2400, 7200, '2022-08-17 06:00:10'),
+(179, '1660716357172', 145, 1, 3, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-18', '2022-08-19', NULL, NULL, NULL, NULL, NULL, NULL, 6600, '2022-08-17 06:05:57'),
+(180, '1660716610494', 145, 1, 3, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-27', '2022-08-28', NULL, NULL, NULL, NULL, NULL, NULL, 3000, '2022-08-17 06:10:10'),
+(181, '1660716610494', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 1, '2022-09-02', 1200, 3000, '2022-08-17 06:10:10'),
+(182, '1660716754165', 145, 1, 3, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-18', '2022-08-19', NULL, NULL, NULL, NULL, NULL, NULL, 9000, '2022-08-17 06:12:34'),
+(183, '1660717179693', 145, 1, 5, 0, 12800, 1, 1, 'beauty', 'roomA8.jpeg', '頂級星空帳', '1', '2022-08-18', '2022-08-19', NULL, NULL, NULL, NULL, NULL, NULL, 17600, '2022-08-17 06:19:39'),
+(184, '1660717179693', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 4, '2022-09-01', 4800, 17600, '2022-08-17 06:19:39'),
+(185, '1660717611818', 145, 1, 5, 0, 12800, 1, 1, 'beauty', 'roomA8.jpeg', '頂級星空帳', '1', '2022-08-20', '2022-08-21', NULL, NULL, NULL, NULL, NULL, NULL, 20000, '2022-08-17 06:26:51'),
+(186, '1660717683899', 145, 1, 5, 0, 12800, 1, 1, 'beauty', 'roomA8.jpeg', '頂級星空帳', '1', '2022-08-20', '2022-08-21', NULL, NULL, NULL, NULL, NULL, NULL, 20000, '2022-08-17 06:28:03'),
+(187, '1660717683899', 145, 1, 3, 0, 6000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '2', '2022-09-13', '2022-09-15', NULL, NULL, NULL, NULL, NULL, NULL, 20000, '2022-08-17 06:28:03'),
+(188, '1660717683899', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 1, '2022-09-09', 1200, 20000, '2022-08-17 06:28:03'),
+(189, '1660717755541', 145, 1, 4, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-18', '2022-08-19', NULL, NULL, NULL, NULL, NULL, NULL, 3200, '2022-08-17 06:29:15'),
+(190, '1660717841058', 145, 1, 4, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-18', '2022-08-19', NULL, NULL, NULL, NULL, NULL, NULL, 3200, '2022-08-17 06:30:41'),
+(191, '1660717841058', 145, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 8, '夜遊觀星月', 'night01.jpg', 1, '2022-09-08', 200, 3200, '2022-08-17 06:30:41'),
+(192, '1660718055499', 145, 1, 4, 0, 12800, 1, 1, 'beauty', 'roomA8.jpeg', '頂級星空帳', '1', '2022-08-19', '2022-08-20', NULL, NULL, NULL, NULL, NULL, NULL, 13800, '2022-08-17 06:34:15'),
+(193, '1660718055499', 145, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, '漂流探險', 'float01.jpg', 1, '2022-08-20', 1000, 13800, '2022-08-17 06:34:15'),
+(194, '1660718102314', 145, 1, 4, 0, 5800, 4, 2, 'family', 'family-typeC5.jpg', '親子同遊帳', '1', '2022-08-26', '2022-08-27', NULL, NULL, NULL, NULL, NULL, NULL, 7000, '2022-08-17 06:35:02'),
+(195, '1660718102314', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 1, '2022-09-01', 1200, 7000, '2022-08-17 06:35:02'),
+(196, '1660719350176', 145, 1, 5, 0, 12800, 1, 1, 'beauty', 'roomA8.jpeg', '頂級星空帳', '1', '2022-09-06', '2022-09-07', NULL, NULL, NULL, NULL, NULL, NULL, 13900, '2022-08-17 06:55:50'),
+(197, '1660719350176', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 1, '2022-08-26', 1200, 13900, '2022-08-17 06:55:50'),
+(198, '1660720743893', 145, 1, 5, 0, 5800, 4, 2, 'family', 'family-typeC5.jpg', '親子同遊帳', '1', '2022-08-20', '2022-08-21', NULL, NULL, NULL, NULL, NULL, NULL, 7000, '2022-08-17 07:19:03'),
+(199, '1660720743893', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 1, '2022-08-26', 1200, 7000, '2022-08-17 07:19:03'),
+(200, '1660720794688', 145, 1, 5, 0, 4800, 7, 3, 'van', 'campingVan_B1.jpeg', '賞星露營車', '1', '2022-08-20', '2022-08-21', NULL, NULL, NULL, NULL, NULL, NULL, 6000, '2022-08-17 07:19:54'),
+(201, '1660720794688', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 1, '2022-08-25', 1200, 6000, '2022-08-17 07:19:54'),
+(202, '1660721081463', 145, 1, 4, 0, 12800, 1, 1, 'beauty', 'roomA8.jpeg', '頂級星空帳', '1', '2022-08-19', '2022-08-20', NULL, NULL, NULL, NULL, NULL, NULL, 19800, '2022-08-17 07:24:41'),
+(203, '1660721081463', 145, 1, 7, 0, 5800, 4, 2, 'family', 'family-typeC5.jpg', '親子同遊帳', '1', '2022-08-19', '2022-08-20', NULL, NULL, NULL, NULL, NULL, NULL, 19800, '2022-08-17 07:24:41'),
+(204, '1660721081463', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 1, '2022-08-19', 1200, 19800, '2022-08-17 07:24:41'),
+(205, '1660721873410', 145, 1, 5, 0, 12800, 1, 1, 'beauty', 'roomA8.jpeg', '頂級星空帳', '1', '2022-08-26', '2022-08-27', NULL, NULL, NULL, NULL, NULL, NULL, 12800, '2022-08-17 07:37:53'),
+(206, '1660722308061', 145, 1, 3, 0, 3000, 6, 3, 'van', 'campingVan_A5.jpeg', '望山露營車', '1', '2022-08-18', '2022-08-19', NULL, NULL, NULL, NULL, NULL, NULL, 6500, '2022-08-17 07:45:08'),
+(207, '1660722308061', 145, 2, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, '全地形沙灘車', 'atv01.jpg', 3, '2022-08-25', 3600, 6500, '2022-08-17 07:45:08');
 
 --
 -- 已傾印資料表的索引
@@ -238,7 +284,7 @@ ALTER TABLE `order_detail`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `order_detail`
 --
 ALTER TABLE `order_detail`
-  MODIFY `sid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
+  MODIFY `sid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=208;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
