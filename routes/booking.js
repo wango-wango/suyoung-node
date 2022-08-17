@@ -119,6 +119,9 @@ const getRoomHandler = async (req, res) => {
     if (nextDate && endDate) {
         date += `AND (end_date BETWEEN "${nextDate}" AND "${endDate}") OR (start_date BETWEEN "${nextDate}" AND "${endDate}") OR (("${nextDate}" BETWEEN start_date AND end_date)AND("${endDate}" BETWEEN start_date AND end_date)) GROUP BY room_id`;
     }
+
+
+    
     // 查詢訂單含有該日期的sid
     const sqlReservationCount = `SELECT room_id FROM room_reservation WHERE 1 ${date}`;
     const [reservationCount] = await db.query(sqlReservationCount);
@@ -137,14 +140,17 @@ const getRoomHandler = async (req, res) => {
     const finalCount = newCount.filter(function (ele, pos) {
         return newCount.indexOf(ele) == pos;
     });
-    console.log(date);
+
+    // console.log("nextDate:",nextDate);
+    // console.log("endDate:",endDate);
+    // console.log("date",date);
     // console.log(reservationCount);
     // console.log(temporaryCount);
 
     // console.log(reCount);
     // console.log(teCount);
     // console.log(newCount);
-    console.log(finalCount);
+    console.log("finalCount:",finalCount);
     if (nextDate && endDate) {
         if (finalCount && finalCount.length) {
             where += `AND r.sid NOT IN (${finalCount}) `;
@@ -235,7 +241,7 @@ router.post("/temporaryCart", async (req, res) => {
         roomSid,
         adults,
         kids,
-        nextDate,
+        startDate,
         endDate,
         perNight,
         totalPrice,
@@ -255,7 +261,7 @@ router.post("/temporaryCart", async (req, res) => {
         kids,
         perNight,
         totalPrice,
-        nextDate,
+        startDate,
         endDate,
     ]);
     console.log(temporaryCart);
