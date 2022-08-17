@@ -92,6 +92,7 @@ const getRoomHandler = async (req, res) => {
         popular,
         recommend,
         roomSelector,
+        searchPrice,
     } = req.query;
 
     // 從前端取值後 進行 sql 篩選
@@ -101,7 +102,8 @@ const getRoomHandler = async (req, res) => {
     if (recommend === "1") where += `AND r.recommend = ${recommend} `;
     if (startPrice && endPrice)
         where += `AND r.room_price BETWEEN ${startPrice} AND ${endPrice} `;
-
+    if(searchPrice=== "1") where += `ORDER BY room_price `;
+    if(searchPrice=== "2") where += `ORDER BY room_price DESC `;
     // 確認是否含有該標籤的sid
     let tag = "";
     if (tagCheck) {
@@ -183,6 +185,35 @@ const getRoomHandler = async (req, res) => {
     return output;
 };
 
+
+const getOrderDetailHandler = async (req, res) => {
+    let memberID = req.query.memberId;
+    
+    // 取得 該會員所有的訂單編號
+    const sqlOrderId = `SELECT order_id FROM order_detail WHERE member_id = ${memberID} GROUP BY order_id;`;
+
+    const [OrderId] = await db.query(sqlOrderId);
+
+    let output = [];
+    // 用訂單編號跑回圈
+    // 把每一個訂單的訂單細節存進去output
+    for(let value of OrderId){
+        // 取得房型資料
+        const sqlOrderDetail1 = `SELECT * FROM order_detail WHERE  order_Type = 1 AND order_id = ${value.order_id}`
+        // 取得活動資料
+        const sqlOrderDetail2 = `SELECT * FROM order_detail WHERE  order_Type = 2 AND order_id = ${value.order_id}` 
+
+        const [r1] = await db.query(sqlOrderDetail1)
+        const [r2] = await db.query(sqlOrderDetail2)
+        // 整合在一起之後
+        const [r3] = [...r1,...r2];
+        // 推進去output 
+        output.push(r3);
+
+    }
+    
+    return output;
+}
 // 房型
 router.get("/selectRoom", async (req, res) => {
     const output = await getRoomHandler(req, res);
@@ -285,6 +316,12 @@ router.delete("/deleteKeep", async (req, res) => {
         }
     );
     res.send(result);
+});
+
+// 房型
+router.get("/selectOrderDetail", async (req, res) => {
+    const output = await getOrderDetailHandler(req, res);
+    res.json(output);
 });
 
 //update
