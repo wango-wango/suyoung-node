@@ -96,7 +96,7 @@ const getRoomHandler = async (req, res) => {
     } = req.query;
 
     // 從前端取值後 進行 sql 篩選
-    if (adults) where += `AND r.person_num <= ${adults} `;
+    if (adults) where += `AND r.person_num >= ${adults} `;
     if (roomType) where += `AND rt.R_id IN (${roomType}) `;
     if (roomSelector) where += `AND r.sid IN (${roomSelector}) `;
     if (recommend === "1") where += `AND r.recommend = ${recommend} `;
