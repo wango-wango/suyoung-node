@@ -6,7 +6,7 @@ const router = express.Router();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
-const OrderList = require(__dirname + '/../modules/OrderList');
+const OrderList = require(__dirname + "/../modules/OrderList");
 const { toDateString, toDatetimeString } = require(__dirname +
     "../../modules/date-tools");
 
@@ -20,8 +20,7 @@ router.use(express.json());
 //=================nodeamiler
 //send email
 function sendEmail(email1) {
-    var email1 = "shinderr0125@gmail.com"
-    
+    var email1 = "shinderr0125@gmail.com";
 
     var mail = nodemailer.createTransport({
         host: "smtp.gmail.com",
@@ -36,11 +35,9 @@ function sendEmail(email1) {
         from: "shinderr0125@gmail.com",
         to: email1,
         subject: "shuyoung舒營 訂單編號：{order_id}",
-        html: 
-        `<h1>親愛的新德，您好</h1>
+        html: `<h1>親愛的新德，您好</h1>
         <p>感謝您</p>
-        `
-
+        `,
     };
 
     mail.sendMail(mailOptions, function (error, info) {
@@ -55,13 +52,12 @@ function sendEmail(email1) {
 //================nodemailer
 
 // router.post("/orderDetail-email", async (req, res, next) => {
-    
+
 //     var email = "shinderr0125@gmail.com";
 
 //     var order_id = req.body.order_id;
 
 //     console.log("email",order_id);
-    
 
 //         res.json({
 //             success: true,
@@ -78,113 +74,112 @@ function sendEmail(email1) {
 
 //CRUD
 //將商品加入購物車
-router.post('/order/add', async(req,res)=>{
+router.post("/order/add", async (req, res) => {
     const userId = await req.params.userId;
 
     console.log(userId);
-    let output ={
+    let output = {
         success: false,
-        error:'',
+        error: "",
         insertId: 0,
     };
-    
-    if(!req.body.orderItems.room_id > 1){
-        output.error = '參數不足'
-        return  res.json(output);
+
+    if (!req.body.orderItems.room_id > 1) {
+        output.error = "參數不足";
+        return res.json(output);
     }
 
-    if( +req.body.quantity <1 ){
-        output.error = '數量不能小於1';
-        return  res.json(output);
+    if (+req.body.quantity < 1) {
+        output.error = "數量不能小於1";
+        return res.json(output);
     }
-     //判斷該商品是否加入購物車
+    //判斷該商品是否加入購物車
     const sql3 = `SELECT COUNT(1) num FROM room_reservation WHERE room_id=?`;
-    const [[{num}]] = await db.query(sql3, [req.body.orderItems.room_id]);
-    if(num>0){
-        output.error = '購物車內已經有這個商品'
-        return  res.json(output);
+    const [[{ num }]] = await db.query(sql3, [req.body.orderItems.room_id]);
+    if (num > 0) {
+        output.error = "購物車內已經有這個商品";
+        return res.json(output);
     }
 
-    for (let item of req.body.orderItems){
+    for (let item of req.body.orderItems) {
         const sql2 = "INSERT INTO `room_reservation` SET ?";
         const [r2] = await db.query(sql2, [item]);
-        console.log(req.body)
+        console.log(req.body);
     }
 
-    output = {...output, body: req.body.orderItems};
+    output = { ...output, body: req.body.orderItems };
     res.json(output);
 });
 
 //將活動加入購物車
-router.post('/act/add', async(req,res)=>{
+router.post("/act/add", async (req, res) => {
     const userId = await req.params.userId;
 
     console.log(userId);
-    let output ={
+    let output = {
         success: false,
-        error:'',
+        error: "",
         insertId: 0,
     };
 
-    for (let item of req.body.orderAct){
+    for (let item of req.body.orderAct) {
         const sql3 = "INSERT INTO `act_order` SET ?";
         const [r3] = await db.query(sql3, [item]);
-        console.log(req.body)
+        console.log(req.body);
     }
 
-    output = {...output, body: req.body.orderAct};
+    output = { ...output, body: req.body.orderAct };
     res.json(output);
 });
 
 //寫入信用卡資訊
-router.post('/card/add', async(req,res)=>{
-    let output ={
+router.post("/card/add", async (req, res) => {
+    let output = {
         success: false,
-        error:'',
+        error: "",
         insertId: 0,
     };
-    console.log(req.body)
+    console.log(req.body);
     const member = req.body.member_id;
     const number = req.body.card_number;
     const date = req.body.expire_date;
 
-    const creditCardsql = "INSERT INTO `credit_card`(`m_id`, `card_number`, `expire_date`) VALUES( ?, ?, ?) ";
+    const creditCardsql =
+        "INSERT INTO `credit_card`(`m_id`, `card_number`, `expire_date`) VALUES( ?, ?, ?) ";
 
     const [r3] = await db.query(creditCardsql, [member, number, date]);
 
-    if(r3.affectedRows){
+    if (r3.affectedRows) {
         output.success = true;
     }
-    res.json(output); 
+    res.json(output);
 });
 
 //寫入訂單資訊
-router.post('/orderDetail/add', async(req,res)=>{
-    let output ={
+router.post("/orderDetail/add", async (req, res) => {
+    let output = {
         success: false,
-        error:'',
+        error: "",
         insertId: 0,
     };
-    console.log(req.body.orderDetail)
+    console.log(req.body.orderDetail);
 
-    for (let item of req.body.orderDetail){
+    for (let item of req.body.orderDetail) {
         const sql3 = "INSERT INTO `order_detail` SET ?";
         const [r3] = await db.query(sql3, [item]);
 
-
-
-        console.log(r3)
-        console.log(req.body.orderDetail)
+        console.log(r3);
+        console.log(req.body.orderDetail);
     }
 
-    const emailOrder = req.body.orderDetail[0]
-    const emailActOrder = req.body.orderDetail[1]
+    const emailOrder = req.body.orderDetail[0];
+    const emailActOrder = req.body.orderDetail[1];
 
     console.log(emailOrder);
 
     //寄發驗證信
-    var email1 = "shinderr0125@gmail.com"
-    
+    var email1 = "shinderr0125@gmail.com";
+
     var mail = nodemailer.createTransport({
         host: "smtp.gmail.com",
         port: 465,
@@ -198,8 +193,7 @@ router.post('/orderDetail/add', async(req,res)=>{
         from: "shinderr0125@gmail.com",
         to: email1,
         subject: `shuyoung舒營 訂單編號：${emailOrder.order_id}`,
-        html:
-         `
+        html: `
          <h1>舒營（SHUYOUNG）</h1>
          <h2>親愛的新德，您好，以下為訂單資訊</h2>
          <p>訂單編號：${emailOrder.order_id}</p>
@@ -212,7 +206,7 @@ router.post('/orderDetail/add', async(req,res)=>{
          <p>活動名稱：${emailActOrder.act_name}</p>
          <p>人數：${emailActOrder.act_people}</p>
          <p>舒營期待您的到來</p>
-         `
+         `,
     };
 
     mail.sendMail(mailOptions, function (error, info) {
@@ -223,22 +217,23 @@ router.post('/orderDetail/add', async(req,res)=>{
         }
     });
 
-    output = {...output, body: req.body.orderDetail};
+    output = { ...output, body: req.body.orderDetail };
     res.json(output);
 });
 
 //取得訂單內容
-router.get('/orderDetailFinal', async (req, res)=>{
+router.get("/orderDetailFinal", async (req, res) => {
     let orderSid = req.query.orderSid;
     let orderType1 = req.query.orderType1;
     let orderType2 = req.query.orderType2;
-    const sql3 = "SELECT * FROM `order_detail` WHERE 1 AND order_id = ? AND order_Type = ?;";
-    
+    const sql3 =
+        "SELECT * FROM `order_detail` WHERE 1 AND order_id = ? AND order_Type = ?;";
+    console.log("orderType2:", orderType2);
     let output = {
         roomList: [],
         actList: [],
     };
-    const [r1] = await db.query(sql3, [orderSid,orderType1]);
+    const [r1] = await db.query(sql3, [orderSid, orderType1]);
 
     for (let i = 0; i < r1.length; i++) {
         r1[i].start_date = toDateString(r1[i].start_date);
@@ -246,28 +241,35 @@ router.get('/orderDetailFinal', async (req, res)=>{
     }
     output.roomList = r1;
 
-    const [r2] = await db.query(sql3, [orderSid,orderType2]);
-    
+    const [r2] = await db.query(sql3, [orderSid, orderType2]);
+
     for (let i = 0; i < r2.length; i++) {
         r2[i].act_day = toDateString(r2[i].act_day);
     }
     output.actList = r2;
 
-    console.log("orderSid",orderSid,"orderType1",orderType1,"orderType2",orderType2)
-    console.log("r1",r1)
-    console.log("r2",r2)
-    console.log("output",output)
+    console.log(
+        "orderSid",
+        orderSid,
+        "orderType1",
+        orderType1,
+        "orderType2",
+        orderType2
+    );
+    console.log("r1", r1);
+    console.log("r2", r2);
+    console.log("output", output);
 
     res.json(output);
 });
 
 //取得Coupn
-router.get('/coupn/:CouponId', async (req, res)=>{
+router.get("/coupn/:CouponId", async (req, res) => {
     const couponId = await req.params.CouponId;
-    
-    let output ={
+
+    let output = {
         success: false,
-        error:'',
+        error: "",
         insertId: 0,
     };
 
@@ -280,7 +282,7 @@ router.get('/coupn/:CouponId', async (req, res)=>{
     const couponsql = "SELECT * FROM `coupon` WHERE `discount_number` = ? ";
 
     try {
-        const [result] = await db.query( couponsql , [couponId]);
+        const [result] = await db.query(couponsql, [couponId]);
 
         if (result.length > 0) {
             return res.json({
@@ -297,7 +299,7 @@ router.get('/coupn/:CouponId', async (req, res)=>{
     }
 });
 
-// update member_coupon set coupon_status = 1 where coupon_id = 
+// update member_coupon set coupon_status = 1 where coupon_id =
 
 // router 一定要回傳module
 module.exports = router;

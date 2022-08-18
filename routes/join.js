@@ -41,6 +41,9 @@ function sendEmail(email, token) {
     var email = email;
     var token = token;
 
+    console.log("email:", email);
+    console.log("token:", token);
+
     var mail = nodemailer.createTransport({
         host: "smtp.gmail.com",
         port: 465,
@@ -204,7 +207,7 @@ router.post("/register", async (req, res) => {
 router.post("/reset-password-email", async (req, res, next) => {
     var email = req.body.emailAddress;
 
-    console.log(email);
+    console.log(" req.body.emailAddress:", email);
 
     const sql = "SELECT * FROM `memberdata` WHERE m_email =?";
 
