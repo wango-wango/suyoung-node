@@ -23,3 +23,9 @@ router.get("/api/get", async (req, res) => {
     const [result] = await db.query(sqlSelect)
     res.send(result);
 })
+
+router.get("/api/tutorial", async (req, res) => {
+    const sqlSelect = "SELECT * FROM tutorial";
+    const [result] = await db.query(sqlSelect)
+    res.send(result);
+})

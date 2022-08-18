@@ -31,8 +31,9 @@ class OrderList {
         if(!orderId) return null;
         // let sql = 'SELECT * FROM `orders_p` WHERE `orderId`=?';
         // let sql = 'SELECT * FROM `order_pitems` INNER JOIN `orders_p` ON `order_pitems`.`orderId` =  `orders_p`.`orderId` WHERE `order_pitems`.`orderId`=?';
-        let sql = 'SELECT * FROM `order_detail` WHERE `order_id`=?';
+        let sql = 'SELECT * FROM `order_detail` WHERE `order_id`=? AND order_type = ?';
         let [r] = await db.query(sql, [orderId]);
+
         for (let i = 0; i < r.length; i++) {
             r[i].start_date = toDateString(r[i].start_date);
             r[i].end_date = toDateString(r[i].end_date);

@@ -41,6 +41,9 @@ function sendEmail(email, token) {
     var email = email;
     var token = token;
 
+    console.log("email:", email);
+    console.log("token:", token);
+
     var mail = nodemailer.createTransport({
         host: "smtp.gmail.com",
         port: 465,
@@ -146,6 +149,7 @@ router.get("/googleLogin", async (req, res, next) => {
                 });
             } else {
                 const row = result[0];
+                row.create_at = toDateString(row.create_at);
 
                 res.json({
                     success: true,
@@ -203,7 +207,7 @@ router.post("/register", async (req, res) => {
 router.post("/reset-password-email", async (req, res, next) => {
     var email = req.body.emailAddress;
 
-    console.log(email);
+    console.log(" req.body.emailAddress:", email);
 
     const sql = "SELECT * FROM `memberdata` WHERE m_email =?";
 
