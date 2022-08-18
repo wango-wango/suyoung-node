@@ -23,12 +23,20 @@ const getActHandler = async (req, res) => {
         
     };
 
+    // let actSid = req.query.actSid || "";
+    // let where = "WHERE 1";
+    // if (actSid === 1) where += `AND act_img.act_id = ${actSid}`;
+    // if (actSid === 3) where += `AND act_img.act_id = ${actSid}`;
+    // if (actSid === 5) where += `AND act_img.act_id = ${actSid}`;
+    // if (actSid === 8) where += `AND act_img.act_id = ${actSid}`;
+
     let whereFloatimg = `WHERE act_img.act_id = 1`;
     let whereUpstreamimg = `WHERE act_img.act_id = 3`;
     let whereAtvimg = `WHERE act_img.act_id = 5`;
     let whereNightimg = `WHERE act_img.act_id = 8`;
 
         const sqlSelectFloat = `SELECT * FROM act JOIN act_img ON act.act_id = act_img.act_id ${whereFloatimg}`;
+
         const [r1] = await db.query(sqlSelectFloat);
         output.actFloat = r1;
         
@@ -47,10 +55,37 @@ const getActHandler = async (req, res) => {
         return output;
 };
 
+router.post("/actOrder", async (req, res) => {
+    const {
+        memberId,
+        actSid,
+        actName,
+        people,
+        date,
+        totalPrice,
+    } = req.body;
+    console.log(req.body);
+
+    const sqlInsertactOrder =
+        "INSERT INTO `act_order`( `member_id`, `act_id`, `num_people`, `total_price`, `act_date`) VALUES (?,?,?,?,?)";
+
+    const [actOrder] = await db.query(sqlInsertactOrder, [
+        memberId,
+        actSid,
+        actName,
+        people,
+        date,
+        totalPrice,
+    ]);
+    console.log(actOrder);
+});
+
     // 活動
 router.get("/selectAct", async (req, res) => {
     const output = await getActHandler(req, res);
     res.json(output);
 });
+
+
 // router 一定要回傳module
 module.exports = router;
