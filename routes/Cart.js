@@ -210,7 +210,7 @@ router.post('/orderDetail/add', async(req,res)=>{
          <p>天數：${emailOrder.perNight}</p>
          <p>活動：</p>
          <p>活動名稱：${emailActOrder.act_name}</p>
-         <p>活動名稱：${emailActOrder.act_people}</p>
+         <p>人數：${emailActOrder.act_people}</p>
          <p>舒營期待您的到來</p>
          `
     };
