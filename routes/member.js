@@ -387,9 +387,10 @@ router.post("/favlist/act", async (req, res, next) => {
 
     // 判斷是否已新增
     const sqlCountMemberAct =
-        "SELECT COUNT(1) total FROM `favlist` f WHERE f.m_id = ? AND f.fav_list_kind = ?";
+        "SELECT COUNT(1) total FROM `favlist` f WHERE f.m_id = ? AND fav_list_type = ? AND f.fav_list_kind = ?";
     const [[{ total }]] = await db.query(sqlCountMemberAct, [
         memberId,
+        favType,
         favlistId,
     ]);
 
