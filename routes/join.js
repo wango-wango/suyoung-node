@@ -57,7 +57,7 @@ function sendEmail(email, token) {
         from: "shinderr0125@gmail.com",
         to: email,
         subject: "shuyoung舒營 重設密碼認證信",
-        html: `<h1>舒營 重設密碼</h1><p>重設密碼連結：</p><a href="http://localhost:3777/shuyoung/join/resetPassword?token=${token}">點我</a>`,
+        html: `<h1>舒營(Shuyoung) 重設密碼</h1><p>您好，這裡是您的重設密碼連結：</p><a href="http://localhost:3777/shuyoung/join/resetPassword?token=${token}">點我</a>`,
     };
 
     mail.sendMail(mailOptions, function (error, info) {
