@@ -62,7 +62,7 @@ function sendEmail(email, token) {
 
     mail.sendMail(mailOptions, function (error, info) {
         if (error) {
-            console.log("flase");
+            console.log(info);
         } else {
             console.log("success");
         }
@@ -231,7 +231,7 @@ router.post("/reset-password-email", async (req, res, next) => {
 
             const sql2 =
                 'UPDATE `memberdata` SET ? WHERE m_email = "' + email + '"';
-            [result2] = await db.query(sql2, [data]);
+            const [result2] = await db.query(sql2, [data]);
 
             console.log(result2);
 
