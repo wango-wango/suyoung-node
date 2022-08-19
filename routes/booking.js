@@ -349,10 +349,10 @@ router.delete("/deleteKeep", async (req, res) => {
 router.delete("/deleteTemporaryCartAll", async (req, res) => {
     // 從api params 取前端回傳的值
     const { memberId } = req.query;
-    const sqlDeleteKeep =
+    const sqlDeleteAll =
         "DELETE FROM temporaryCart WHERE member_id = ? ;";
     const [result] = await db.query(
-        sqlDeleteKeep,
+        sqlDeleteAll,
         [memberId],
         function (err, result) {
             if (err) {
