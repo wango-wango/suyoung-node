@@ -5,6 +5,8 @@ const db = require(__dirname + "../../modules/mysql-connect");
 const router = express.Router();
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const { toDateString, toDatetimeString } = require(__dirname +
+    "../../modules/date-tools");
 
 //extended： 使用 qs 進行解析，若為 false，則採用 querystring 進行解析，預設為 true
 router.use(bodyParser.urlencoded({ extended: false }));
@@ -95,15 +97,25 @@ const getRoomHandler = async (req, res) => {
         searchPrice,
     } = req.query;
 
-    // 從前端取值後 進行 sql 篩選
+    /* ---- 從前端取值後 進行 sql 篩選 ---- */
+
+    // 大於等於人數
     if (adults) where += `AND r.person_num >= ${adults} `;
+    // 包含哪些房型
     if (roomType) where += `AND rt.R_id IN (${roomType}) `;
+    // 包含哪些房間
     if (roomSelector) where += `AND r.sid IN (${roomSelector}) `;
+    // 回傳全部最推薦的
     if (recommend === "1") where += `AND r.recommend = ${recommend} `;
+    // 拿到價格後 比對價格在此區間內的房間
     if (startPrice && endPrice)
         where += `AND r.room_price BETWEEN ${startPrice} AND ${endPrice} `;
-    if(searchPrice=== "1") where += `ORDER BY room_price `;
-    if(searchPrice=== "2") where += `ORDER BY room_price DESC `;
+
+    // 把 價格多到少少到多 排序放在最後面
+    let wherePrice = "";
+    if(searchPrice=== "1") wherePrice += `ORDER BY room_price `;
+    if(searchPrice=== "2") wherePrice += `ORDER BY room_price DESC `;
+
     // 確認是否含有該標籤的sid
     let tag = "";
     if (tagCheck) {
@@ -113,60 +125,51 @@ const getRoomHandler = async (req, res) => {
     const sqlCheckTag = `SELECT r.sid FROM room_tag_room rtr ,room_tag rt ,room r WHERE rtr.tag_id = rt.t_id AND rtr.room_id = r.sid ${tag} GROUP BY r.sid`;
     const [checkTagRoom] = await db.query(sqlCheckTag);
 
+    // 只取sid 存到陣列中 
     const reCheckTagRoom = checkTagRoom.map((v) => v.sid);
     if (tagCheck) where += `AND r.sid IN (${reCheckTagRoom}) `;
 
-    //查詢訂單
+
+    /* ------- 日期篩選 -------- */
     let date = "";
+    // 因為顧客退房那天其他顧客也可以訂房，因此在前端回傳使用者輸入的隔一天進來後端做篩選
+    // 判斷 最後一天有沒有包含在內 或是 第一天有沒有包含在內 或是 使用者輸入的日期 是否包含在 end_date 和 start_date
     if (nextDate && endDate) {
         date += `AND (end_date BETWEEN "${nextDate}" AND "${endDate}") OR (start_date BETWEEN "${nextDate}" AND "${endDate}") OR (("${nextDate}" BETWEEN start_date AND end_date)AND("${endDate}" BETWEEN start_date AND end_date)) GROUP BY room_id`;
     }
-
-
     
-    // 查詢訂單含有該日期的sid
+    // 查詢room_reservation 的訂單中含有該日期的sid
     const sqlReservationCount = `SELECT room_id FROM room_reservation WHERE 1 ${date}`;
     const [reservationCount] = await db.query(sqlReservationCount);
 
+    // 查詢temporary_Cart 的訂單中含有該日期的sid
     const sqlTemporaryCount = `SELECT room_id FROM temporaryCart WHERE 1 ${date}`;
     const [temporaryCount] = await db.query(sqlTemporaryCount);
-    // const [[{room_id:test}]] = await db.query(sqlTemporaryCount);
+    
 
-    // 取得sid 後 轉成陣列 告訴 roomList 不能包含那些房間
+    // 取得sid 後 用map 轉成陣列 告訴 roomList 不能包含那些房間
     const reCount = reservationCount.map((v) => v.room_id);
     const teCount = temporaryCount.map((v) => v.room_id);
+
     // 合併兩個陣列的值
     const newCount = [...reCount, ...teCount];
 
-    // 把重複的篩選掉
-    const finalCount = newCount.filter(function (ele, pos) {
+    // 把陣列中重複的值篩選掉
+    const finalCount = newCount.filter((ele, pos) => {
         return newCount.indexOf(ele) == pos;
     });
 
-    // console.log("nextDate:",nextDate);
-    // console.log("endDate:",endDate);
-    // console.log("date",date);
-    // console.log(reservationCount);
-    // console.log(temporaryCount);
-
-    // console.log(reCount);
-    // console.log(teCount);
-    // console.log(newCount);
-    console.log("finalCount:",finalCount);
+    // 最後判斷有輸入日期且finalCount有值的話 回傳r.sid 不包含那些
     if (nextDate && endDate) {
         if (finalCount && finalCount.length) {
             where += `AND r.sid NOT IN (${finalCount}) `;
         }
     }
 
-    // 取得最多人訂購的前三名
-    const sqlpopularCount = `SELECT room_id , COUNT(1) num FROM room_reservation GROUP BY room_id ORDER BY num DESC LIMIT 3;`;
-    const [popularCount] = await db.query(sqlpopularCount);
-
+    /* 查詢最熱門的訂單前三名 */
     if (popular === "1")
         // 利用子查詢 加入剛剛查訊出來的 room_id 和 num 加入到列表中
         // 再利用計數的 num 做排序
-
         where += `JOIN (
         SELECT room_id , COUNT(1) num FROM room_reservation GROUP BY room_id ORDER BY num DESC LIMIT 3
     ) rr
@@ -176,7 +179,7 @@ const getRoomHandler = async (req, res) => {
     // console.log(where);
 
     // 最後送出的 sql
-    const sqlVecna = `SELECT * FROM room r JOIN room_type rt ON r.room_type_id = rt.R_id ${where}`;
+    const sqlVecna = `SELECT * FROM room r JOIN room_type rt ON r.room_type_id = rt.R_id ${where} ${wherePrice}`;
     const [vecna] = await db.query(sqlVecna);
     console.log(sqlVecna);
 
@@ -235,14 +238,36 @@ router.get("/favlist", async (req, res) => {
     res.send(resultFav);
 });
 
-// router.get("/selected:roomID", async (req, res) => {
-//     const roomID = req.params.roomID;
-//     const sqlSelectRoom = `SELECT * FROM room r JOIN room_type rt ON r.room_type_id = rt.R_id WHERE r.sid = ${roomID}`;
-//     const [result] = await db.query(sqlSelectRoom);
-//     res.send(result);
-// });
+// 取得會員訂單資料
+router.get("/selectMemberCart", async (req, res) => {
+    const memberId = req.query.memberId;
+    // 先取得該會員購物車資料 和 房型細節資料
+    const sqlSelectRoom = `SELECT * FROM temporaryCart tc, room r , room_type rt WHERE tc.member_id = ${memberId} AND r.sid = tc.room_id AND tc.room_type_id = rt.R_id;`;
+    const [result] = await db.query(sqlSelectRoom);
 
-// 新增資料到favlist
+    for (let i = 0; i < result.length; i++) {
+        result[i].start_date = toDateString(result[i].start_date);
+        result[i].end_date = toDateString(result[i].end_date);
+    }
+    res.send(result);
+});
+
+// 取得活動資料
+router.get("/selectCartCount", async (req, res) => {
+    const memberId = req.query.memberId;
+    // 先取得該會員購物車資料 和 房型細節資料
+    const sqlAct = `SELECT COUNT(*) num FROM act_order WHERE member_id = ${memberId};`;
+    const [result1] = await db.query(sqlAct);
+
+    console.log(result1);
+    const sqlRoom = `SELECT COUNT(*) num FROM temporaryCart WHERE member_id = ${memberId};`;
+    const [result2] = await db.query(sqlRoom);
+    console.log(result2);
+    
+    // res.send(result);
+});
+
+// 新增資料到favlist 收藏房型
 router.post("/addKeep", async (req, res) => {
     const { roomSid, memberId, favType } = req.body;
 
@@ -267,6 +292,8 @@ router.post("/addKeep", async (req, res) => {
         // console.log(add);
     }
 });
+
+// 把商品存進去購物車內
 router.post("/temporaryCart", async (req, res) => {
     const {
         roomSid,
@@ -307,6 +334,46 @@ router.delete("/deleteKeep", async (req, res) => {
     const [result] = await db.query(
         sqlDeleteKeep,
         [memberId, roomSid],
+        function (err, result) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(result);
+            }
+        }
+    );
+    res.send(result);
+});
+
+// 清空該會員所有購物車內資料
+router.delete("/deleteTemporaryCartAll", async (req, res) => {
+    // 從api params 取前端回傳的值
+    const { memberId } = req.query;
+    const sqlDeleteKeep =
+        "DELETE FROM temporaryCart WHERE member_id = ? ;";
+    const [result] = await db.query(
+        sqlDeleteKeep,
+        [memberId],
+        function (err, result) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(result);
+            }
+        }
+    );
+    res.send(result);
+});
+
+// 刪除購物車內單筆資料
+router.delete("/deleteTemporaryCart", async (req, res) => {
+    // 從api params 取前端回傳的值
+    const { memberId, roomSid ,startDate,endDate} = req.query;
+    const sqlDeleteKeep =
+        "DELETE FROM temporaryCart WHERE member_id = ? AND room_id = ? AND start_date = ? AND end_date = ?;";
+    const [result] = await db.query(
+        sqlDeleteKeep,
+        [memberId, roomSid, startDate, endDate],
         function (err, result) {
             if (err) {
                 console.log(err);
