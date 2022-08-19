@@ -196,9 +196,16 @@ router.post("/register", async (req, res) => {
 
         const id = lastId.m_id;
 
+        var dateTime = new Date();
+        dateTime = dateTime.setDate(dateTime.getDate() + 100);
+        dateTime = new Date(dateTime).toLocaleDateString().split("/").join("-");
+        console.log(dateTime);
+
         const couponSql =
-            "INSERT INTO `member_coupon`( `m_id`, `coupon_id`, `coupon_status`) VALUES (?,5,0)";
-        const [couponResult] = await db.query(couponSql, [id]);
+            "INSERT INTO `member_coupon`( `m_id`, `coupon_id`, `coupon_status`,`expire_date`) VALUES (?,5,0,?)";
+        const [couponResult] = await db.query(couponSql, [id, dateTime]);
+
+        console.log("couponResult:", couponResult);
 
         res.json(result);
     }
@@ -332,11 +339,21 @@ router.get("/api/v1/auth/google/sign", async (req, res, next) => {
 
             const id = lastId.m_id;
 
-            const couponSql =
-                "INSERT INTO `member_coupon`( `m_id`, `coupon_id`, `coupon_status`) VALUES (?,5,0)";
-            const [couponResult] = await db.query(couponSql, [id]);
+            var dateTime = new Date();
+            dateTime = dateTime.setDate(dateTime.getDate() + 100);
+            dateTime = new Date(dateTime)
+                .toLocaleDateString()
+                .split("/")
+                .join("-");
+            console.log(dateTime);
 
-            console.log(couponResult);
+            const couponSql =
+                "INSERT INTO `member_coupon`( `m_id`, `coupon_id`, `coupon_status`,`start_date`,`expire_date`) VALUES (?,5,0,NOW(),?)";
+            const [couponResult] = await db.query(couponSql, [id, dateTime]);
+
+            // row.m_birthday = toDateString(row.m_birthday);
+
+            console.log("couponResult:", couponResult);
 
             const token = jwt.sign(
                 {
