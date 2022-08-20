@@ -202,7 +202,7 @@ router.post("/register", async (req, res) => {
         console.log(dateTime);
 
         const couponSql =
-            "INSERT INTO `member_coupon`( `m_id`, `coupon_id`, `coupon_status`,`expire_date`) VALUES (?,5,0,?)";
+            "INSERT INTO `member_coupon`( `m_id`, `coupon_id`, `coupon_status`,`m_start_date`,`m_expire_date`) VALUES (?,5,0,NOW(),?)";
         const [couponResult] = await db.query(couponSql, [id, dateTime]);
 
         console.log("couponResult:", couponResult);
@@ -348,7 +348,7 @@ router.get("/api/v1/auth/google/sign", async (req, res, next) => {
             console.log(dateTime);
 
             const couponSql =
-                "INSERT INTO `member_coupon`( `m_id`, `coupon_id`, `coupon_status`,`start_date`,`expire_date`) VALUES (?,5,0,NOW(),?)";
+                "INSERT INTO `member_coupon`( `m_id`, `coupon_id`, `coupon_status`,`m_start_date`,`m_expire_date`) VALUES (?,5,0,NOW(),?)";
             const [couponResult] = await db.query(couponSql, [id, dateTime]);
 
             // row.m_birthday = toDateString(row.m_birthday);
