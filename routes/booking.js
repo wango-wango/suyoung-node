@@ -58,7 +58,7 @@ const getRoomHandler = async (req, res) => {
 
     output.roomDetail = r1;
 
-    const sqlSelectTag = `SELECT rt.type, r.sid FROM room_tag_room rtr JOIN room_tag rt ON rtr.tag_id = rt.t_id JOIN room r ON r.sid = rtr.room_id ${where};`;
+    const sqlSelectTag = `SELECT rt.type, r.sid, rt.t_id FROM room_tag_room rtr JOIN room_tag rt ON rtr.tag_id = rt.t_id JOIN room r ON r.sid = rtr.room_id ${where};`;
     const [r2] = await db.query(sqlSelectTag);
 
     output.tagList = r2;
@@ -188,7 +188,7 @@ const getRoomHandler = async (req, res) => {
     return output;
 };
 
-
+// 測試從後端取得會員訂單細節資料
 const getOrderDetailHandler = async (req, res) => {
     let memberID = req.query.memberId;
     
