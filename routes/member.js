@@ -187,9 +187,10 @@ router.get("/coupon/:userId", async (req, res, next) => {
     for (let i = 0; i < result.length; i++) {
         result[i].start_date = toDateString(result[i].start_date);
         result[i].expire_date = toDateString(result[i].expire_date);
+        result[i].m_start_date = toDateString(result[i].m_start_date);
     }
 
-    console.log(result[0].expire_date);
+    console.log(result[0].m_start_date);
 
     if (!result.length) {
         return res.json({
@@ -339,15 +340,16 @@ router.delete("/favlist", async (req, res, next) => {
         return res.json({ message: "無使用者資料", code: "400" });
     }
 
-    const sql = "DELETE FROM `favlist` WHERE `fav_list_kind` =? AND m_id = ?";
+    const sql =
+        "DELETE FROM `favlist` WHERE `fav_list_kind` =? AND fav_list_type = 1 AND m_id = ?";
 
     const [result] = await db.query(sql, [roomSid, member]);
 
     if (result.affectedRows === 0) {
         res.json({ message: "沒有資料被刪掉", code: "404" });
+    } else {
+        res.json(result);
     }
-
-    res.json(result);
 });
 
 router.get("/favlist/:userId", async (req, res, next) => {
@@ -372,8 +374,8 @@ router.get("/favlist/:userId", async (req, res, next) => {
 
     const [result2] = await db.query(sql2, [userId]);
 
-    console.log(result);
-    console.log(result2);
+    console.log("result:", result);
+    console.log("result2:", result2);
     output.room = result;
     output.act = result2;
 
@@ -412,7 +414,8 @@ router.post("/favlist/act", async (req, res, next) => {
 router.delete("/favlist/act/delete", async (req, res, next) => {
     const { memberId, favlistId } = req.query;
 
-    const sql = "DELETE FROM `favlist` WHERE `m_id`=? AND`fav_list_kind`=?";
+    const sql =
+        "DELETE FROM `favlist` WHERE `m_id`=? AND fav_list_type = 2 AND `fav_list_kind`=?";
 
     const [result] = await db.query(sql, [memberId, favlistId]);
 
@@ -426,6 +429,10 @@ router.get("/getOrderList/:userId", async (req, res, next) => {
     const { month } = req.query;
 
     // console.log("month:", month);
+
+    if (!userId) {
+        return res.json({ message: "此用戶不存在", code: "400" });
+    }
 
     let value = "";
 
@@ -441,10 +448,6 @@ router.get("/getOrderList/:userId", async (req, res, next) => {
     } else {
         value = 24;
         console.log(value);
-    }
-
-    if (!userId) {
-        return res.json({ message: "此用戶不存在", code: "400" });
     }
 
     const sql =
