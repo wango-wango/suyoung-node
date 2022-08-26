@@ -113,8 +113,8 @@ const getRoomHandler = async (req, res) => {
 
     // 把 價格多到少少到多 排序放在最後面
     let wherePrice = "";
-    if(searchPrice=== "1") wherePrice += `ORDER BY room_price `;
-    if(searchPrice=== "2") wherePrice += `ORDER BY room_price DESC `;
+    if (searchPrice === "1") wherePrice += `ORDER BY room_price `;
+    if (searchPrice === "2") wherePrice += `ORDER BY room_price DESC `;
 
     // 確認是否含有該標籤的sid
     let tag = "";
@@ -125,10 +125,9 @@ const getRoomHandler = async (req, res) => {
     const sqlCheckTag = `SELECT r.sid FROM room_tag_room rtr ,room_tag rt ,room r WHERE rtr.tag_id = rt.t_id AND rtr.room_id = r.sid ${tag} GROUP BY r.sid`;
     const [checkTagRoom] = await db.query(sqlCheckTag);
 
-    // 只取sid 存到陣列中 
+    // 只取sid 存到陣列中
     const reCheckTagRoom = checkTagRoom.map((v) => v.sid);
     if (tagCheck) where += `AND r.sid IN (${reCheckTagRoom}) `;
-
 
     /* ------- 日期篩選 -------- */
     let date = "";
@@ -137,7 +136,7 @@ const getRoomHandler = async (req, res) => {
     if (nextDate && endDate) {
         date += `AND (end_date BETWEEN "${nextDate}" AND "${endDate}") OR (start_date BETWEEN "${nextDate}" AND "${endDate}") OR (("${nextDate}" BETWEEN start_date AND end_date)AND("${endDate}" BETWEEN start_date AND end_date)) GROUP BY room_id`;
     }
-    
+
     // 查詢room_reservation 的訂單中含有該日期的sid
     const sqlReservationCount = `SELECT room_id FROM room_reservation WHERE 1 ${date}`;
     const [reservationCount] = await db.query(sqlReservationCount);
@@ -145,7 +144,6 @@ const getRoomHandler = async (req, res) => {
     // 查詢temporary_Cart 的訂單中含有該日期的sid
     const sqlTemporaryCount = `SELECT room_id FROM temporaryCart WHERE 1 ${date}`;
     const [temporaryCount] = await db.query(sqlTemporaryCount);
-    
 
     // 取得sid 後 用map 轉成陣列 告訴 roomList 不能包含那些房間
     const reCount = reservationCount.map((v) => v.room_id);
@@ -181,7 +179,7 @@ const getRoomHandler = async (req, res) => {
     // 最後送出的 sql
     const sqlVecna = `SELECT * FROM room r JOIN room_type rt ON r.room_type_id = rt.R_id ${where} ${wherePrice}`;
     const [vecna] = await db.query(sqlVecna);
-    console.log(sqlVecna);
+    // console.log(sqlVecna);
 
     output.roomList = vecna;
 
@@ -191,7 +189,7 @@ const getRoomHandler = async (req, res) => {
 // 測試從後端取得會員訂單細節資料
 const getOrderDetailHandler = async (req, res) => {
     let memberID = req.query.memberId;
-    
+
     // 取得 該會員所有的訂單編號
     const sqlOrderId = `SELECT order_id FROM order_detail WHERE member_id = ${memberID} GROUP BY order_id;`;
 
@@ -200,23 +198,22 @@ const getOrderDetailHandler = async (req, res) => {
     let output = [];
     // 用訂單編號跑回圈
     // 把每一個訂單的訂單細節存進去output
-    for(let value of OrderId){
+    for (let value of OrderId) {
         // 取得房型資料
-        const sqlOrderDetail1 = `SELECT * FROM order_detail WHERE  order_Type = 1 AND order_id = ${value.order_id}`
+        const sqlOrderDetail1 = `SELECT * FROM order_detail WHERE  order_Type = 1 AND order_id = ${value.order_id}`;
         // 取得活動資料
-        const sqlOrderDetail2 = `SELECT * FROM order_detail WHERE  order_Type = 2 AND order_id = ${value.order_id}` 
+        const sqlOrderDetail2 = `SELECT * FROM order_detail WHERE  order_Type = 2 AND order_id = ${value.order_id}`;
 
-        const [r1] = await db.query(sqlOrderDetail1)
-        const [r2] = await db.query(sqlOrderDetail2)
+        const [r1] = await db.query(sqlOrderDetail1);
+        const [r2] = await db.query(sqlOrderDetail2);
         // 整合在一起之後
-        const [r3] = [...r1,...r2];
-        // 推進去output 
+        const [r3] = [...r1, ...r2];
+        // 推進去output
         output.push(r3);
-
     }
-    
+
     return output;
-}
+};
 // 房型
 router.get("/selectRoom", async (req, res) => {
     const output = await getRoomHandler(req, res);
@@ -259,12 +256,12 @@ router.get("/selectCartCount", async (req, res) => {
     const sqlAct = `SELECT COUNT(*) num FROM act_order WHERE member_id = ${memberId};`;
     const [result1] = await db.query(sqlAct);
 
-    console.log(result1);
+    // console.log(result1);
     const sqlRoom = `SELECT COUNT(*) num FROM temporaryCart WHERE member_id = ${memberId};`;
     const [result2] = await db.query(sqlRoom);
-    console.log(result2);
-    
-    // res.send(result);
+    // console.log(result2);
+    result = [...result1, ...result2];
+    res.send(result);
 });
 
 // 新增資料到favlist 收藏房型
@@ -291,6 +288,7 @@ router.post("/addKeep", async (req, res) => {
         ]);
         // console.log(add);
     }
+    res.json(add);
 });
 
 // 把商品存進去購物車內
@@ -323,6 +321,7 @@ router.post("/temporaryCart", async (req, res) => {
         endDate,
     ]);
     console.log(temporaryCart);
+    res.json(temporaryCart);
 });
 
 //delete
@@ -349,8 +348,7 @@ router.delete("/deleteKeep", async (req, res) => {
 router.delete("/deleteTemporaryCartAll", async (req, res) => {
     // 從api params 取前端回傳的值
     const { memberId } = req.query;
-    const sqlDeleteAll =
-        "DELETE FROM temporaryCart WHERE member_id = ? ;";
+    const sqlDeleteAll = "DELETE FROM temporaryCart WHERE member_id = ? ;";
     const [result] = await db.query(
         sqlDeleteAll,
         [memberId],
@@ -368,7 +366,7 @@ router.delete("/deleteTemporaryCartAll", async (req, res) => {
 // 刪除購物車內單筆資料
 router.delete("/deleteTemporaryCart", async (req, res) => {
     // 從api params 取前端回傳的值
-    const { memberId, roomSid ,startDate,endDate} = req.query;
+    const { memberId, roomSid, startDate, endDate } = req.query;
     const sqlDeleteKeep =
         "DELETE FROM temporaryCart WHERE member_id = ? AND room_id = ? AND start_date = ? AND end_date = ?;";
     const [result] = await db.query(
